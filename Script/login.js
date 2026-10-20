@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 botaoLogin.disabled = true;
             }
 
-            // Suporta file://, Live Server (porta 5500) ou Node (porta 3000)
-            const API_BASE = (window.location.protocol === 'http:' && window.location.port === '3000')
-                ? ''
-                : 'http://localhost:3000';
+            // Suporta Render (produção), file://, Live Server (porta 5500) ou Node (porta 3000)
+            const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
+                ? 'http://localhost:3000'
+                : '';
 
             try {
                 const resposta = await fetch(`${API_BASE}/api/login`, {

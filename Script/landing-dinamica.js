@@ -3,7 +3,9 @@
 // =======================================================
 async function carregarProdutosDoBanco() {
     try {
-        const API_BASE = (window.location.protocol === 'http:' && window.location.port === '3000') ? '' : 'http://localhost:3000';
+        const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
+            ? 'http://localhost:3000'
+            : '';
         const resposta = await fetch(`${API_BASE}/api/produtos`);
         const produtos = await resposta.json();
         return produtos;

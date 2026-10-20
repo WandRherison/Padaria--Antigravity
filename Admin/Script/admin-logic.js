@@ -561,7 +561,7 @@ async function mostrarPedidosNoAdmin() {
                         <div>
                             <h5>${pedido.cliente}</h5>
                             <span style="font-size:0.8rem; color:var(--cafe-claro); display:block; margin-bottom:3px;">📄 CPF: ${pedido.cpf}</span>
-                            <span style="font-size:0.8rem; color:var(--cafe-claro);">📅 Retirada: ${pedido.dataRetirada} às ${pedido.horaRetirada}</span>
+                            <span style="font-size:0.8rem; color:var(--cafe-claro);">${(pedido.dataRetirada && pedido.horaRetirada) ? `📅 Agendado: ${pedido.dataRetirada} às ${pedido.horaRetirada.slice(0, 5)}` : `⚡ Retirada imediata no balcão`}</span>
                         </div>
                     </div>
 
@@ -814,7 +814,7 @@ async function abrirModalPedidosCliente(email, nome) {
                         <h4 style="margin:0; color: #4A3B32;">Pedido #${pedido.id}</h4>
                         <span style="background:${cor}; color:white; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight:bold;">${pedido.status}</span>
                     </div>
-                    <p style="font-size: 0.85rem; color: #7A6A5A; margin:0 0 10px 0;">Feito em: ${pedido.dataPedido} | Retirada: ${pedido.dataRetirada} às ${pedido.horaRetirada}</p>
+                    <p style="font-size: 0.85rem; color: #7A6A5A; margin:0 0 10px 0;">Feito em: ${pedido.dataPedido} | ${(pedido.dataRetirada && pedido.horaRetirada) ? `Retirada agendada: ${pedido.dataRetirada} às ${pedido.horaRetirada.slice(0, 5)}` : `⚡ Retirada imediata no balcão`}</p>
                     <ul style="margin: 0 0 12px 20px; font-size: 0.95rem; color: #4A3B32;">${itensHTML}</ul>
                     <div style="display: flex; justify-content: space-between; font-weight: 800; color: #4A3B32; border-top: 1px dashed #D4C5A9; padding-top: 10px;">
                         <span>Pagamento: ${pedido.pagamento}</span>

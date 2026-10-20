@@ -14,3 +14,7 @@ Thumbs.db
 
 # Arquivos de Relatório Pesados do Power BI
 *.pbix
+
+# Arquivos temporários e scratch
+scratch/
+test-upload.js

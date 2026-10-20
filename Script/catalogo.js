@@ -37,12 +37,16 @@ function nomeCategoria(categoria) {
 // =======================================================
 async function carregarProdutosDoBanco() {
     try {
-        const API_BASE = (window.location.protocol === 'http:' && window.location.port === '3000') ? '' : 'http://localhost:3000';
+        const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
+            ? 'http://localhost:3000'
+            : '';
         const resposta = await fetch(`${API_BASE}/api/produtos`);
         
         // Converte a resposta do banco para um Array de Objetos (JSON)
         listaCompleta = await resposta.json(); 
         
+        renderizarAbasSetores();
+        renderizarPilulasCategorias();
         // Depois de salvar os dados na variável global, aplica os filtros para renderizar a tela
         aplicarFiltros(); 
     } catch (erro) {
@@ -221,7 +225,7 @@ function aplicarFiltros() {
     const termoBusca = barraBusca ? removerAcentos(barraBusca.value.toLowerCase().trim()) : "";
 
     const produtosFiltrados = listaCompleta.filter(produto => {
-        const nomeProduto = removerAcentos(produto.nome.toLowerCase());
+        const nomeProduto = removerAcentos((produto.nome || "").toLowerCase());
         const passouNaBusca = nomeProduto.includes(termoBusca);
 
         let passouNoSetor = false;
@@ -232,14 +236,20 @@ function aplicarFiltros() {
         } else if (setorAtual === "retiravel") {
             passouNoSetor = produto.is_retiravel === 1;
         } else {
-            passouNoSetor = produto.nome_setor && produto.nome_setor.toLowerCase() === setorAtual;
+            const setorProd = removerAcentos((produto.nome_setor || "").toLowerCase());
+            const catProd = removerAcentos((produto.categoria || "").toLowerCase());
+            const setorFiltro = removerAcentos(setorAtual.toLowerCase());
+            passouNoSetor = (setorProd === setorFiltro) || (catProd === setorFiltro);
         }
         
         let passouNaCategoria = false;
         if (categoriaAtual === "todos") {
             passouNaCategoria = true;
         } else {
-            passouNaCategoria = produto.categoria && produto.categoria.toLowerCase() === categoriaAtual;
+            const catProd = removerAcentos((produto.categoria || "").toLowerCase());
+            const setorProd = removerAcentos((produto.nome_setor || "").toLowerCase());
+            const catFiltro = removerAcentos(categoriaAtual.toLowerCase());
+            passouNaCategoria = (catProd === catFiltro) || (setorProd === catFiltro);
         }
         
         return passouNaBusca && passouNoSetor && passouNaCategoria;
@@ -270,15 +280,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const paramFiltro = urlParams.get("filtro");
     
     if (paramSetor) {
-        let setorRaw = paramSetor.toLowerCase();
+        let setorRaw = removerAcentos(paramSetor.toLowerCase().trim());
         
         // Mapeamentos específicos por erros de plural ou categorias
-        if (setorRaw === "doces") setorRaw = "doce";
-        if (setorRaw === "frios") {
+        if (setorRaw === "doces" || setorRaw === "doce") {
+            setorAtual = "mercearia";
+            categoriaAtual = "doce";
+        } else if (setorRaw === "frios") {
             setorAtual = "acougue"; // Frios fica no açougue
             categoriaAtual = "frios";
         } else {
-            const subcategoriasMercearia = ["doce", "bebidas", "pets", "limpeza", "laticínios", "laticinios"];
+            const subcategoriasMercearia = ["doce", "bebidas", "pets", "limpeza", "laticinios"];
             
             if (subcategoriasMercearia.includes(setorRaw)) {
                 setorAtual = "mercearia";
@@ -290,25 +302,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (paramFiltro) {
-        if (paramFiltro === "oferta" || paramFiltro === "retiravel") {
-            setorAtual = paramFiltro.toLowerCase();
+        const filtroFormatado = removerAcentos(paramFiltro.toLowerCase().trim());
+        if (filtroFormatado === "oferta" || filtroFormatado === "retiravel") {
+            setorAtual = filtroFormatado;
         } else {
-            categoriaAtual = paramFiltro.toLowerCase();
+            categoriaAtual = filtroFormatado;
         }
     }
 
-    // Carrega tudo
-    const API_BASE = (window.location.protocol === 'http:' && window.location.port === '3000') ? '' : 'http://localhost:3000';
-    fetch(`${API_BASE}/api/produtos`)
-        .then(res => res.json())
-        .then(dados => {
-            listaCompleta = dados;
-            renderizarAbasSetores();
-            renderizarPilulasCategorias();
-            aplicarFiltros();
-        })
-        .catch(err => {
-            console.error("Erro ao carregar:", err);
-            containerProdutos.innerHTML = `<p style="color:red; padding:20px;">Erro ao carregar catálogo.</p>`;
-        });
+    // Carrega do banco e renderiza os produtos
+    carregarProdutosDoBanco();
 });

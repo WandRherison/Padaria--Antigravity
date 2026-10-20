@@ -58,12 +58,21 @@ const db = mysql.createPool({
     port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
     waitForConnections: true,
     connectionLimit: 10,
+    timezone: '-03:00',
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+});
+
+// Força o fuso horário de Brasília (UTC-3) em todas as conexões estabelecidas com o MySQL
+db.on('connection', (connection) => {
+    connection.query("SET time_zone = '-03:00'");
 });
 
 // Teste de conexão
 db.getConnection()
-    .then(() => console.log('Conectado ao MySQL (Pool) - Padaria Diniz!'))
+    .then((conn) => {
+        console.log('Conectado ao MySQL (Pool) - Padaria Diniz (Fuso Horário: America/Sao_Paulo UTC-3)!');
+        conn.release();
+    })
     .catch(err => console.error('Erro ao conectar:', err));
 
 // ==========================================
@@ -356,17 +365,18 @@ app.delete('/api/pedidos/cliente/:email/concluidos', async (req, res) => {
             const idsPedidos = pedidos.map(p => p.codigo_pedido);
             
             // Soft delete: Marca como excluído e atualiza timestamp de alteração, preservando dados no Power BI
+            const agoraBrasilia = obterDataHoraBrasilia();
             await conexao.query(`
                 UPDATE pedidos 
-                SET excluido = TRUE, data_hora_atualizacao = NOW() 
+                SET excluido = TRUE, data_hora_atualizacao = ? 
                 WHERE codigo_pedido IN (?)
-            `, [idsPedidos]);
+            `, [agoraBrasilia, idsPedidos]);
         }
 
         await conexao.commit(); // Confirma as alterações no banco de dados
         res.json({ mensagem: "Pedidos concluídos e cancelados limpos com sucesso!" });
     } catch (erro) {
-        if (conexao) await conexao.rollback(); // Desfaz tudo se der algum erro no caminho
+        try { if (conexao) await conexao.rollback(); } catch (_) {}
         console.error("Erro ao limpar concluídos:", erro);
         res.status(500).json({ erro: erro.message });
     } finally {
@@ -396,17 +406,18 @@ app.delete('/api/pedidos/cliente/:email/todos', async (req, res) => {
             const idsPedidos = pedidos.map(p => p.codigo_pedido);
             
             // Soft delete: Atualiza a flag de exclusão e o timestamp
+            const agoraBrasilia = obterDataHoraBrasilia();
             await conexao.query(`
                 UPDATE pedidos 
-                SET excluido = TRUE, data_hora_atualizacao = NOW() 
+                SET excluido = TRUE, data_hora_atualizacao = ? 
                 WHERE codigo_pedido IN (?)
-            `, [idsPedidos]);
+            `, [agoraBrasilia, idsPedidos]);
         }
 
         await conexao.commit();
         res.json({ mensagem: "Todo o histórico foi limpo com sucesso!" });
     } catch (erro) {
-        if (conexao) await conexao.rollback();
+        try { if (conexao) await conexao.rollback(); } catch (_) {}
         console.error("Erro ao limpar histórico completo:", erro);
         res.status(500).json({ erro: erro.message });
     } finally {
@@ -414,9 +425,27 @@ app.delete('/api/pedidos/cliente/:email/todos', async (req, res) => {
     }
 });
 
-/// =======================================================
-// FUNÇÃO AUXILIAR DE DATAS (À Prova de falhas)
 // =======================================================
+// FUNÇÕES AUXILIARES DE DATAS (À Prova de falhas & Fuso Brasília)
+// =======================================================
+function obterDataHoraBrasilia() {
+    const d = new Date();
+    const partes = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    }).formatToParts(d);
+
+    const m = {};
+    partes.forEach(p => m[p.type] = p.value);
+    return `${m.year}-${m.month}-${m.day} ${m.hour}:${m.minute}:${m.second}`;
+}
+
 function converterDataParaMySQL(data) {
     if (!data) return null;
     // Se a data vier com barras (ex: 31/05/2026), converte para MySQL (YYYY-MM-DD)
@@ -443,7 +472,7 @@ app.post('/api/pedidos', async (req, res) => {
         conexao = await db.getConnection();
         await conexao.beginTransaction();
 
-        const dataPedidoSQL = converterDataParaMySQL(dataPedido) || new Date().toISOString().split('T')[0];
+        const dataPedidoSQL = converterDataParaMySQL(dataPedido) || new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
 
         // 1. Busca o ID numérico do Cliente
         const sqlBuscaCliente = `
@@ -484,7 +513,7 @@ app.post('/api/pedidos', async (req, res) => {
             }
             
             const dataRetFormatada = converterDataParaMySQL(grupo.dataRetirada);
-            const hojeStr = new Date().toISOString().split('T')[0];
+            const hojeStr = new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
             if (dataRetFormatada < hojeStr) {
                 throw new Error(`Data de retirada inválida (${grupo.dataRetirada}). Não é permitido agendar no passado.`);
             }
@@ -548,13 +577,14 @@ app.post('/api/pedidos', async (req, res) => {
             // Gera um código único baseado no timestamp para este sub-pedido
             const codigo = 'PED-' + Date.now().toString().slice(-6) + '-' + Math.floor(Math.random() * 100);
 
+            const agoraBrasilia = obterDataHoraBrasilia();
             const sqlPedido = `
                 INSERT INTO pedidos 
                 (codigo_cliente, situacao, total, data_pedido, data_hora_atualizacao, data_retirada, hora_retirada, codigo_retirada, forma_pagto, excluido) 
-                VALUES (?, 'Pendente', ?, NOW(), NOW(), ?, ?, ?, ?, FALSE)`;
+                VALUES (?, 'Pendente', ?, ?, ?, ?, ?, ?, ?, FALSE)`;
 
             const [resultadoPedido] = await conexao.query(sqlPedido, [
-                idCliente, totalCalculado, dataRetiradaSQL, horaRetirada, codigo, pagamento
+                idCliente, totalCalculado, agoraBrasilia, agoraBrasilia, dataRetiradaSQL, horaRetirada, codigo, pagamento
             ]);
             const idPedidoGerado = resultadoPedido.insertId;
             idsPedidosGerados.push(codigo);
@@ -576,7 +606,7 @@ app.post('/api/pedidos', async (req, res) => {
         });
 
     } catch (erro) {
-        if (conexao) await conexao.rollback();
+        try { if (conexao) await conexao.rollback(); } catch (_) {}
         // AQUI ESTÁ O SEGREDO: O erro real e detalhado aparecerá no terminal do Node.js!
         console.error("❌ FALHA NO BANCO DE DADOS:", erro.message); 
         res.status(500).json({ erro: "Erro ao inserir pedido: " + erro.message });
@@ -708,13 +738,14 @@ app.put('/api/pedidos/:codigo/status', async (req, res) => {
         }
 
         // 3. Atualiza o status do pedido
-        const sql = `UPDATE pedidos SET situacao = ?, justificativa = ?, data_hora_atualizacao = NOW() WHERE codigo_pedido = ?`;
-        await conexao.query(sql, [status, justificativa || null, pedidoAtual.codigo_pedido]);
+        const agoraBrasilia = obterDataHoraBrasilia();
+        const sql = `UPDATE pedidos SET situacao = ?, justificativa = ?, data_hora_atualizacao = ? WHERE codigo_pedido = ?`;
+        await conexao.query(sql, [status, justificativa || null, agoraBrasilia, pedidoAtual.codigo_pedido]);
 
         await conexao.commit();
         res.json({ mensagem: "Status do pedido modificado com sucesso!" });
     } catch (erro) {
-        if (conexao) await conexao.rollback();
+        try { if (conexao) await conexao.rollback(); } catch (_) {}
         console.error("Erro ao atualizar status:", erro);
         res.status(500).json({ erro: erro.message });
     } finally {
@@ -815,17 +846,18 @@ app.delete('/api/admin/pedidos/concluidos', async (req, res) => {
             
             // Soft delete: Marca os pedidos como excluídos logicamente e atualiza o timestamp
             // Mantém os registros para análises no Power BI / Data Warehouse
+            const agoraBrasilia = obterDataHoraBrasilia();
             await conexao.query(`
                 UPDATE pedidos 
-                SET excluido = TRUE, data_hora_atualizacao = NOW() 
+                SET excluido = TRUE, data_hora_atualizacao = ? 
                 WHERE codigo_pedido IN (?)
-            `, [idsPedidos]);
+            `, [agoraBrasilia, idsPedidos]);
         }
 
         await conexao.commit();
         res.json({ mensagem: "Limpeza global realizada com sucesso via soft delete!" });
     } catch (erro) {
-        if (conexao) await conexao.rollback();
+        try { if (conexao) await conexao.rollback(); } catch (_) {}
         console.error("Erro na limpeza global do admin:", erro);
         res.status(500).json({ erro: erro.message });
     } finally {

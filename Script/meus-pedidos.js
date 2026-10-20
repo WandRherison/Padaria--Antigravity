@@ -7,7 +7,9 @@
 ======================================================= */
 
 let idDoPedidoParaCancelar = null;
-const API_BASE = (window.location.protocol === 'http:' && window.location.port === '3000') ? '' : 'http://localhost:3000'; 
+const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
+    ? 'http://localhost:3000'
+    : ''; 
 
 document.addEventListener('DOMContentLoaded', () => {
     renderizarHistorico();
@@ -125,7 +127,7 @@ async function renderizarHistorico() {
                 <div class="pedido-info">
                     <div style="margin-bottom: 15px;">
                         <span class="data-compra">Realizado em ${pedido.dataPedido}</span><br>
-                        <span style="font-size: 0.85rem; color: #7A6A5A;">📅 Retirada agendada para: <strong>${pedido.dataRetirada || 'Indefinida'} às ${pedido.horaRetirada || ''}</strong></span>
+                        <span style="font-size: 0.85rem; color: #7A6A5A;">${(pedido.dataRetirada && pedido.horaRetirada) ? `📅 Retirada agendada para: <strong>${pedido.dataRetirada} às ${pedido.horaRetirada.slice(0, 5)}</strong>` : `⚡ Retirada: <strong>Imediata no balcão</strong>`}</span>
                     </div>
                     
                     <h2>Pedido #${pedido.id}</h2>
