@@ -919,11 +919,32 @@ CALCULATE(
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
 
-#### Status do Estoque (Coluna Calculada em `'padaria vw_dim_produtos'`)
-Classificação por semáforo de criticidade para cada item da tabela de dimensão de produtos.
+#### Status do Estoque (Medida para Visuais e Tabelas)
+Use esta versão se estiver criando através do botão **Nova Medida**. O `SELECTEDVALUE` obtém a quantidade da linha do produto selecionado no visual.
 
 ```dax
 Status Estoque = 
+VAR Qtd = SELECTEDVALUE('padaria vw_dim_produtos'[quantidade_estoque])
+RETURN
+IF(
+    ISBLANK(Qtd),
+    BLANK(),
+    SWITCH(
+        TRUE(),
+        Qtd = 0,   "🔴 Esgotado",
+        Qtd <= 10, "🟡 Estoque Baixo",
+        "🟢 Normal"
+    )
+)
+```
+* **Tipo:** Medida (`_Medidas`)
+* **Uso:** Tabelas, matrizes de produtos, tooltips e cartões.
+
+#### Status do Estoque (Coluna Calculada para Filtros / Segmentação de Dados)
+> ⚠️ **Atenção:** Para usar esta fórmula, selecione a tabela `'padaria vw_dim_produtos'` na lista de campos à direita e clique em **Ferramentas de Tabela / Ferramentas de Coluna > Nova Coluna** (e **NÃO** "Nova Medida"). Colunas calculadas permitem criar filtros/segmentações na tela para filtrar produtos por "Esgotado", "Estoque Baixo" ou "Normal".
+
+```dax
+Status Estoque Coluna = 
 VAR Qtd = 'padaria vw_dim_produtos'[quantidade_estoque]
 RETURN
 SWITCH(
@@ -933,9 +954,10 @@ SWITCH(
     "🟢 Normal"
 )
 ```
-* **Tipo:** Coluna Calculada de Texto
+* **Tipo:** Coluna Calculada de Texto na tabela `'padaria vw_dim_produtos'`
+* **Uso:** Segmentação de dados (Slicers/Filtros visuais na página).
 
-#### Cor Status Estoque (Formatação Condicional HEX)
+#### Cor Status Estoque (Formatação Condicional HEX - Medida)
 Retorna o código HEX para aplicar automaticamente em cores de fontes, planos de fundo de tabelas e barras de gráficos.
 
 ```dax
