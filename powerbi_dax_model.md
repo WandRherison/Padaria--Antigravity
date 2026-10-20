@@ -10,8 +10,8 @@ No Power BI, acesse a aba **Modelagem > Nova Tabela** e insira o código DAX aba
 
 ```dax
 dCalendario = 
-VAR DataMinima = MIN(vw_fato_vendas[data_pedido_data])
-VAR DataMaxima = MAX(vw_fato_vendas[data_pedido_data])
+VAR DataMinima = MIN('padaria vw_fato_vendas'[data_pedido_data])
+VAR DataMaxima = MAX('padaria vw_fato_vendas'[data_pedido_data])
 -- Inicia no primeiro dia do mês em que ocorreram as primeiras vendas
 VAR DataInicio = IF(ISBLANK(DataMinima), DATE(2026, 7, 1), DATE(YEAR(DataMinima), MONTH(DataMinima), 1))
 -- Finaliza no último dia com movimentação de vendas (ou TODAY())
@@ -47,7 +47,7 @@ ADDCOLUMNS (
 > 3. Ordene a coluna `MesAbrev` pela coluna `MesNum`.
 > 4. Ordene a coluna `MesAno` pela coluna `AnoMesNum`.
 > 5. Ordene a coluna `DiaSemanaNome` pela coluna `DiaSemanaNum`.
-> 6. Crie o relacionamento **1:N** entre `dCalendario[Data]` (1) e `vw_fato_vendas[data_pedido_data]` (N).
+> 6. Crie o relacionamento **1:N** entre `dCalendario[Data]` (1) e `'padaria vw_fato_vendas'[data_pedido_data]` (N).
 
 ---
 
@@ -57,8 +57,8 @@ ADDCOLUMNS (
 > * **Tabela Dedicada:** Centralize todas as medidas na tabela `_Medidas` (crie uma tabela vazia via Inserir Dados).
 > * **Variáveis (`VAR / RETURN`):** Previnem recálculos redundantes na engine VertiPaq, melhorando o tempo de renderização de visuais.
 > * **Divisões Seguras (`DIVIDE`):** Protegem contra erros de divisão por zero (`#DIV/0!`), retornando `BLANK()` ou `0` de forma controlada.
-> * **Campos Lógicos (`is_excluido`):** Como o Power Query converte `TINYINT(1)` para booleano, todas as medidas usam estritamente `vw_fato_vendas[is_excluido] = FALSE()`.
-> * **Referenciamento Padrão:** Medidas são referenciadas sem nome de tabela (`[Receita Bruta]`), enquanto colunas contêm sempre o prefixo da tabela (`vw_fato_vendas[quantidade]`).
+> * **Campos Lógicos (`is_excluido`):** Como o Power Query converte `TINYINT(1)` para booleano, todas as medidas usam estritamente `'padaria vw_fato_vendas'[is_excluido] = FALSE()`.
+> * **Referenciamento Padrão:** Medidas são referenciadas sem nome de tabela (`[Receita Bruta]`), enquanto colunas contêm sempre o prefixo da tabela (`'padaria vw_fato_vendas'[quantidade]`).
 
 ---
 
@@ -70,9 +70,9 @@ Mede o faturamento bruto gerado por todos os pedidos válidos (desconsidera pedi
 ```dax
 Receita Bruta = 
 CALCULATE(
-    SUM(vw_fato_vendas[subtotal_venda]),
-    vw_fato_vendas[status_pedido] <> "Cancelado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    SUM('padaria vw_fato_vendas'[subtotal_venda]),
+    'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -84,9 +84,9 @@ Total financeiro proveniente exclusivamente de pedidos cujo status operacional j
 ```dax
 Receita Faturada = 
 CALCULATE(
-    SUM(vw_fato_vendas[subtotal_venda]),
-    vw_fato_vendas[status_pedido] = "Finalizado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    SUM('padaria vw_fato_vendas'[subtotal_venda]),
+    'padaria vw_fato_vendas'[status_pedido] = "Finalizado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -98,9 +98,9 @@ Valor monetário de pedidos que estão ativos e em processo de atendimento (`Pen
 ```dax
 Receita em Aberto = 
 CALCULATE(
-    SUM(vw_fato_vendas[subtotal_venda]),
-    vw_fato_vendas[status_pedido] IN { "Pendente", "Em produção" },
-    vw_fato_vendas[is_excluido] = FALSE()
+    SUM('padaria vw_fato_vendas'[subtotal_venda]),
+    'padaria vw_fato_vendas'[status_pedido] IN { "Pendente", "Em produção" },
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -112,8 +112,8 @@ Total financeiro que deixou de entrar no caixa por cancelamento de pedidos.
 ```dax
 Receita Cancelada = 
 CALCULATE(
-    SUM(vw_fato_vendas[subtotal_venda]),
-    vw_fato_vendas[status_pedido] = "Cancelado"
+    SUM('padaria vw_fato_vendas'[subtotal_venda]),
+    'padaria vw_fato_vendas'[status_pedido] = "Cancelado"
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -126,9 +126,9 @@ Faturamento médio gerado por dia útil com vendas no período selecionado.
 Receita Média Diária = 
 VAR DiasComVenda = 
     CALCULATE(
-        DISTINCTCOUNT(vw_fato_vendas[data_pedido_data]),
-        vw_fato_vendas[status_pedido] <> "Cancelado",
-        vw_fato_vendas[is_excluido] = FALSE()
+        DISTINCTCOUNT('padaria vw_fato_vendas'[data_pedido_data]),
+        'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+        'padaria vw_fato_vendas'[is_excluido] = FALSE()
     )
 RETURN
 DIVIDE([Receita Bruta], DiasComVenda, 0)
@@ -145,9 +145,9 @@ Soma do custo de aquisição ou matéria-prima de todos os produtos comercializa
 ```dax
 Custo Total = 
 CALCULATE(
-    SUM(vw_fato_vendas[custo_total]),
-    vw_fato_vendas[status_pedido] <> "Cancelado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    SUM('padaria vw_fato_vendas'[custo_total]),
+    'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -228,13 +228,13 @@ Mede o montante em reais economizado pelos clientes em decorrência de preços p
 Desconto Total Concedido = 
 CALCULATE(
     SUMX(
-        vw_fato_vendas,
-        VAR PrecoTabela = RELATED(vw_dim_produtos[preco_venda])
-        VAR Diferenca = (PrecoTabela - vw_fato_vendas[preco_unitario]) * vw_fato_vendas[quantidade]
+        'padaria vw_fato_vendas',
+        VAR PrecoTabela = RELATED('padaria vw_dim_produtos'[preco_venda])
+        VAR Diferenca = (PrecoTabela - 'padaria vw_fato_vendas'[preco_unitario]) * 'padaria vw_fato_vendas'[quantidade]
         RETURN IF(Diferenca > 0, Diferenca, 0)
     ),
-    vw_fato_vendas[status_pedido] <> "Cancelado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -260,9 +260,9 @@ Contagem de pedidos concluídos ou ativos na esteira (exclui cancelados e exclus
 ```dax
 Qtd Pedidos = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-    vw_fato_vendas[status_pedido] <> "Cancelado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+    'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -273,9 +273,9 @@ Total de pedidos entregues ao cliente com sucesso.
 ```dax
 Qtd Pedidos Finalizados = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-    vw_fato_vendas[status_pedido] = "Finalizado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+    'padaria vw_fato_vendas'[status_pedido] = "Finalizado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -286,8 +286,8 @@ Volume de pedidos que foram cancelados antes da conclusão.
 ```dax
 Qtd Pedidos Cancelados = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-    vw_fato_vendas[status_pedido] = "Cancelado"
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+    'padaria vw_fato_vendas'[status_pedido] = "Cancelado"
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -297,7 +297,7 @@ Volume absoluto de pedidos inseridos na plataforma, servindo de base para cálcu
 
 ```dax
 Total Geral Pedidos = 
-DISTINCTCOUNT(vw_fato_vendas[codigo_pedido])
+DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido])
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
 
@@ -343,9 +343,9 @@ Quantidade total de itens e produtos vendidos.
 ```dax
 Volume de Vendas = 
 CALCULATE(
-    SUM(vw_fato_vendas[quantidade]),
-    vw_fato_vendas[status_pedido] <> "Cancelado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    SUM('padaria vw_fato_vendas'[quantidade]),
+    'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -378,7 +378,7 @@ Percentual de unidades comercializadas por cada setor em relação ao volume glo
 ```dax
 % Volume por Setor = 
 VAR VolumeSetor = [Volume de Vendas]
-VAR VolumeTotal = CALCULATE([Volume de Vendas], ALLSELECTED(vw_dim_setor))
+VAR VolumeTotal = CALCULATE([Volume de Vendas], ALLSELECTED('padaria vw_dim_setor'))
 RETURN
 DIVIDE(VolumeSetor, VolumeTotal, 0)
 ```
@@ -391,7 +391,7 @@ Participação de cada setor no faturamento total da padaria.
 ```dax
 % Receita por Setor = 
 VAR ReceitaSetor = [Receita Bruta]
-VAR ReceitaTotal = CALCULATE([Receita Bruta], ALLSELECTED(vw_dim_setor))
+VAR ReceitaTotal = CALCULATE([Receita Bruta], ALLSELECTED('padaria vw_dim_setor'))
 RETURN
 DIVIDE(ReceitaSetor, ReceitaTotal, 0)
 ```
@@ -405,7 +405,7 @@ Rank Setor por Receita =
 IF(
     ISBLANK([Receita Bruta]),
     BLANK(),
-    RANKX(ALLSELECTED(vw_dim_setor[nome_setor]), [Receita Bruta], , DESC, Dense)
+    RANKX(ALLSELECTED('padaria vw_dim_setor'[nome_setor]), [Receita Bruta], , DESC, Dense)
 )
 ```
 * **Formatação:** Número Inteiro (`0`)
@@ -418,7 +418,7 @@ Rank Setor por Volume =
 IF(
     ISBLANK([Volume de Vendas]),
     BLANK(),
-    RANKX(ALLSELECTED(vw_dim_setor[nome_setor]), [Volume de Vendas], , DESC, Dense)
+    RANKX(ALLSELECTED('padaria vw_dim_setor'[nome_setor]), [Volume de Vendas], , DESC, Dense)
 )
 ```
 * **Formatação:** Número Inteiro (`0`)
@@ -521,7 +521,7 @@ Soma cumulativa dia a dia da receita ao longo do período selecionado, com trava
 
 ```dax
 Receita Acumulada = 
-VAR UltimaDataVendas = CALCULATE(MAX(vw_fato_vendas[data_pedido_data]), ALL(vw_fato_vendas))
+VAR UltimaDataVendas = CALCULATE(MAX('padaria vw_fato_vendas'[data_pedido_data]), ALL('padaria vw_fato_vendas'))
 VAR DataContexto = MAX(dCalendario[Data])
 RETURN
 IF(
@@ -638,7 +638,7 @@ IF(
 
 ### 2.8. Lead Time Médio de Preparo, Fila & Retirada
 
-A view analítica `vw_fato_vendas` já pré-calcula o tempo em minutos através de `TIMESTAMPDIFF(MINUTE, p.data_pedido, p.data_hora_atualizacao)` para pedidos finalizados. As fórmulas abaixo agrupam no grânulo de `codigo_pedido` para garantir que pedidos com múltiplos itens não distorçam a média.
+A view analítica `'padaria vw_fato_vendas'` já pré-calcula o tempo em minutos através de `TIMESTAMPDIFF(MINUTE, p.data_pedido, p.data_hora_atualizacao)` para pedidos finalizados. As fórmulas abaixo agrupam no grânulo de `codigo_pedido` para garantir que pedidos com múltiplos itens não distorçam a média.
 
 #### Lead Time Médio de Preparo (Minutos)
 Tempo médio que a padaria leva desde a criação do pedido pelo cliente até a finalização do preparo na cozinha.
@@ -648,15 +648,15 @@ Lead Time Médio de Preparo (Minutos) =
 CALCULATE(
     AVERAGEX(
         SUMMARIZE(
-            vw_fato_vendas,
-            vw_fato_vendas[codigo_pedido],
-            "MinutosPedido", MAX(vw_fato_vendas[lead_time_minutos])
+            'padaria vw_fato_vendas',
+            'padaria vw_fato_vendas'[codigo_pedido],
+            "MinutosPedido", MAX('padaria vw_fato_vendas'[lead_time_minutos])
         ),
         [MinutosPedido]
     ),
-    vw_fato_vendas[status_pedido] = "Finalizado",
-    vw_fato_vendas[is_excluido] = FALSE(),
-    NOT(ISBLANK(vw_fato_vendas[lead_time_minutos]))
+    'padaria vw_fato_vendas'[status_pedido] = "Finalizado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE(),
+    NOT(ISBLANK('padaria vw_fato_vendas'[lead_time_minutos]))
 )
 ```
 * **Formatação:** Decimal (`0.0`)
@@ -703,10 +703,10 @@ Percentual de pedidos finalizados entregues rigorosamente dentro da meta de 30 m
 VAR MetaMinutos = [Meta Lead Time]
 VAR PedidosNoPrazo = 
     CALCULATE(
-        DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-        vw_fato_vendas[status_pedido] = "Finalizado",
-        vw_fato_vendas[is_excluido] = FALSE(),
-        vw_fato_vendas[lead_time_minutos] <= MetaMinutos
+        DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+        'padaria vw_fato_vendas'[status_pedido] = "Finalizado",
+        'padaria vw_fato_vendas'[is_excluido] = FALSE(),
+        'padaria vw_fato_vendas'[lead_time_minutos] <= MetaMinutos
     )
 RETURN
 DIVIDE(PedidosNoPrazo, [Qtd Pedidos Finalizados], 0)
@@ -719,9 +719,9 @@ Quantidade de pedidos que estão atualmente na fila de espera ou em preparação
 ```dax
 Fila de Pedidos Ativa = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-    vw_fato_vendas[status_pedido] IN { "Pendente", "Em produção" },
-    vw_fato_vendas[is_excluido] = FALSE()
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+    'padaria vw_fato_vendas'[status_pedido] IN { "Pendente", "Em produção" },
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -744,10 +744,10 @@ Volume de pedidos que utilizaram a funcionalidade de agendamento de retirada no 
 ```dax
 Qtd Pedidos Agendados = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-    NOT(ISBLANK(vw_fato_vendas[data_retirada])),
-    vw_fato_vendas[status_pedido] <> "Cancelado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+    NOT(ISBLANK('padaria vw_fato_vendas'[data_retirada])),
+    'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -758,10 +758,10 @@ Pedidos agendados prontos ou em preparo que aguardam a chegada do cliente.
 ```dax
 Qtd Agendados Pendentes = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-    NOT(ISBLANK(vw_fato_vendas[data_retirada])),
-    vw_fato_vendas[status_pedido] IN { "Pendente", "Em produção" },
-    vw_fato_vendas[is_excluido] = FALSE()
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+    NOT(ISBLANK('padaria vw_fato_vendas'[data_retirada])),
+    'padaria vw_fato_vendas'[status_pedido] IN { "Pendente", "Em produção" },
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -772,10 +772,10 @@ Pedidos agendados com data de retirada prevista para a data de hoje (`TODAY()`) 
 ```dax
 Qtd Agendados para Hoje = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_pedido]),
-    vw_fato_vendas[data_retirada] = TODAY(),
-    vw_fato_vendas[status_pedido] IN { "Pendente", "Em produção" },
-    vw_fato_vendas[is_excluido] = FALSE()
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_pedido]),
+    'padaria vw_fato_vendas'[data_retirada] = TODAY(),
+    'padaria vw_fato_vendas'[status_pedido] IN { "Pendente", "Em produção" },
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -820,14 +820,14 @@ SWITCH(
 
 ### 2.9. Gestão & Alertas de Estoque
 
-Medidas analíticas para monitoramento em tempo real do nível de inventário, valor imobilizado e prevenção de ruptura na tabela `vw_dim_produtos`.
+Medidas analíticas para monitoramento em tempo real do nível de inventário, valor imobilizado e prevenção de ruptura na tabela `'padaria vw_dim_produtos'`.
 
 #### Estoque Total de Produtos (Unidades Físicas em Prateleira)
 Soma de todas as unidades disponíveis em inventário.
 
 ```dax
 Estoque Total = 
-SUM(vw_dim_produtos[quantidade_estoque])
+SUM('padaria vw_dim_produtos'[quantidade_estoque])
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
 
@@ -837,8 +837,8 @@ Mede o montante financeiro investido na compra/produção das mercadorias estoca
 ```dax
 Valor do Estoque (Custo) = 
 SUMX(
-    vw_dim_produtos,
-    vw_dim_produtos[quantidade_estoque] * vw_dim_produtos[preco_custo]
+    'padaria vw_dim_produtos',
+    'padaria vw_dim_produtos'[quantidade_estoque] * 'padaria vw_dim_produtos'[preco_custo]
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -849,8 +849,8 @@ Valor potencial de receita caso todas as mercadorias estocadas sejam vendidas pe
 ```dax
 Valor do Estoque (Venda) = 
 SUMX(
-    vw_dim_produtos,
-    vw_dim_produtos[quantidade_estoque] * vw_dim_produtos[preco_efetivo]
+    'padaria vw_dim_produtos',
+    'padaria vw_dim_produtos'[quantidade_estoque] * 'padaria vw_dim_produtos'[preco_efetivo]
 )
 ```
 * **Formatação:** Moeda (`R$ #,##0.00`)
@@ -869,7 +869,7 @@ Total de SKUs cadastrados no mix da padaria.
 
 ```dax
 Qtd Produtos Catálogo = 
-DISTINCTCOUNT(vw_dim_produtos[codigo_produto])
+DISTINCTCOUNT('padaria vw_dim_produtos'[codigo_produto])
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
 
@@ -879,8 +879,8 @@ Contagem de itens cadastrados com estoque zerado (`0 unidades`), gerando perda d
 ```dax
 Qtd Produtos Esgotados = 
 CALCULATE(
-    COUNTROWS(vw_dim_produtos),
-    vw_dim_produtos[quantidade_estoque] = 0
+    COUNTROWS('padaria vw_dim_produtos'),
+    'padaria vw_dim_produtos'[quantidade_estoque] = 0
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -900,9 +900,9 @@ Contagem de itens com estoque baixo (entre 1 e 10 unidades), demandando nova for
 ```dax
 Qtd Produtos em Alerta = 
 CALCULATE(
-    COUNTROWS(vw_dim_produtos),
-    vw_dim_produtos[quantidade_estoque] > 0,
-    vw_dim_produtos[quantidade_estoque] <= 10
+    COUNTROWS('padaria vw_dim_produtos'),
+    'padaria vw_dim_produtos'[quantidade_estoque] > 0,
+    'padaria vw_dim_produtos'[quantidade_estoque] <= 10
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -913,18 +913,18 @@ Total de itens operando em níveis seguros de estoque.
 ```dax
 Qtd Produtos Estoque Normal = 
 CALCULATE(
-    COUNTROWS(vw_dim_produtos),
-    vw_dim_produtos[quantidade_estoque] > 10
+    COUNTROWS('padaria vw_dim_produtos'),
+    'padaria vw_dim_produtos'[quantidade_estoque] > 10
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
 
-#### Status do Estoque (Coluna Calculada em `vw_dim_produtos`)
+#### Status do Estoque (Coluna Calculada em `'padaria vw_dim_produtos'`)
 Classificação por semáforo de criticidade para cada item da tabela de dimensão de produtos.
 
 ```dax
 Status Estoque = 
-VAR Qtd = vw_dim_produtos[quantidade_estoque]
+VAR Qtd = 'padaria vw_dim_produtos'[quantidade_estoque]
 RETURN
 SWITCH(
     TRUE(),
@@ -940,7 +940,7 @@ Retorna o código HEX para aplicar automaticamente em cores de fontes, planos de
 
 ```dax
 Cor Status Estoque = 
-VAR Qtd = SELECTEDVALUE(vw_dim_produtos[quantidade_estoque], SUM(vw_dim_produtos[quantidade_estoque]))
+VAR Qtd = SELECTEDVALUE('padaria vw_dim_produtos'[quantidade_estoque], SUM('padaria vw_dim_produtos'[quantidade_estoque]))
 RETURN
 SWITCH(
     TRUE(),
@@ -962,9 +962,9 @@ Quantidade de clientes cadastrados que realizaram compras válidas no período.
 ```dax
 Clientes Compradores = 
 CALCULATE(
-    DISTINCTCOUNT(vw_fato_vendas[codigo_cliente]),
-    vw_fato_vendas[status_pedido] <> "Cancelado",
-    vw_fato_vendas[is_excluido] = FALSE()
+    DISTINCTCOUNT('padaria vw_fato_vendas'[codigo_cliente]),
+    'padaria vw_fato_vendas'[status_pedido] <> "Cancelado",
+    'padaria vw_fato_vendas'[is_excluido] = FALSE()
 )
 ```
 * **Formatação:** Número Inteiro (`#,##0`)
@@ -999,37 +999,37 @@ DIVIDE([Qtd Pedidos], [Clientes Compradores], 0)
                  |
                  | (1:N)
                  v
-+----------------+----------------+      (N:1)      +--------------------+
-|         vw_fato_vendas          | --------------> |  vw_dim_produtos   |
-| [data_pedido_data]              |                 | [codigo_produto]   |
-| [codigo_produto]                |                 +---------+----------+
-| [codigo_cliente]                |                           | (N:1)
-| [codigo_setor]                  |                           v
-+----------------+----------------+      (N:1)      +--------------------+
-                 | --------------> |  vw_dim_setor      |
-                 |                 | [codigo_setor]     |
-                 | (N:1)           +--------------------+
++--------------------------------+      (N:1)      +----------------------------+
+|    'padaria vw_fato_vendas'    | --------------> |  'padaria vw_dim_produtos' |
+| [data_pedido_data]             |                 | [codigo_produto]           |
+| [codigo_produto]               |                 +-------------+--------------+
+| [codigo_cliente]               |                               | (N:1)
+| [codigo_setor]                 |                               v
++----------------+---------------+      (N:1)      +----------------------------+
+                 | ------------------------------> |   'padaria vw_dim_setor'   |
+                 |                                 | [codigo_setor]             |
+                 | (N:1)                           +----------------------------+
                  v
-       +--------------------+
-       |  vw_dim_clientes   |
-       | [codigo_cliente]   |
-       +--------------------+
+       +----------------------------+
+       |  'padaria vw_dim_clientes' |
+       | [codigo_cliente]           |
+       +----------------------------+
 ```
 
 ### Detalhes das Chaves e Cardinalidades:
 | Tabela Origem (Fato) | Coluna Origem | Tabela Destino (Dimensão) | Coluna Destino | Cardinalidade | Direção do Filtro |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `vw_fato_vendas` | `data_pedido_data` | `dCalendario` | `Data` | Muitos para Um (N:1) | Única (`dCalendario` filtra `vw_fato_vendas`) |
-| `vw_fato_vendas` | `codigo_produto` | `vw_dim_produtos` | `codigo_produto` | Muitos para Um (N:1) | Única (`vw_dim_produtos` filtra `vw_fato_vendas`) |
-| `vw_fato_vendas` | `codigo_cliente` | `vw_dim_clientes` | `codigo_cliente` | Muitos para Um (N:1) | Única (`vw_dim_clientes` filtra `vw_fato_vendas`) |
-| `vw_fato_vendas` | `codigo_setor` | `vw_dim_setor` | `codigo_setor` | Muitos para Um (N:1) | Única (`vw_dim_setor` filtra `vw_fato_vendas`) |
-| `vw_dim_produtos` | `codigo_setor` | `vw_dim_setor` | `codigo_setor` | Muitos para Um (N:1) | Única (opcional / integridade) |
+| `'padaria vw_fato_vendas'` | `data_pedido_data` | `dCalendario` | `Data` | Muitos para Um (N:1) | Única (`dCalendario` filtra `'padaria vw_fato_vendas'`) |
+| `'padaria vw_fato_vendas'` | `codigo_produto` | `'padaria vw_dim_produtos'` | `codigo_produto` | Muitos para Um (N:1) | Única (`'padaria vw_dim_produtos'` filtra `'padaria vw_fato_vendas'`) |
+| `'padaria vw_fato_vendas'` | `codigo_cliente` | `'padaria vw_dim_clientes'` | `codigo_cliente` | Muitos para Um (N:1) | Única (`'padaria vw_dim_clientes'` filtra `'padaria vw_fato_vendas'`) |
+| `'padaria vw_fato_vendas'` | `codigo_setor` | `'padaria vw_dim_setor'` | `codigo_setor` | Muitos para Um (N:1) | Única (`'padaria vw_dim_setor'` filtra `'padaria vw_fato_vendas'`) |
+| `'padaria vw_dim_produtos'` | `codigo_setor` | `'padaria vw_dim_setor'` | `codigo_setor` | Muitos para Um (N:1) | Única (opcional / integridade) |
 
 ---
 
 ## 4. Dicionário de Colunas das Views (MySQL AWS RDS)
 
-### `vw_fato_vendas`
+### `'padaria vw_fato_vendas'`
 * `codigo_item`: Chave primária do item do pedido.
 * `codigo_pedido`: Identificador do pedido gerado.
 * `codigo_retirada`: Código amigável exibido ao cliente para retirada no balcão.
@@ -1054,7 +1054,7 @@ DIVIDE([Qtd Pedidos], [Clientes Compradores], 0)
 * `lucro_bruto`: Lucro em reais gerado pelo item (`subtotal_venda - custo_total`).
 * `lead_time_minutos`: Minutos transcorridos entre o pedido e a entrega (apenas `Finalizados`).
 
-### `vw_dim_produtos`
+### `'padaria vw_dim_produtos'`
 * `codigo_produto`: Chave primária do produto.
 * `codigo_setor`: Chave estrangeira do setor.
 * `nome_produto`: Nome comercial do item.
@@ -1079,6 +1079,6 @@ DIVIDE([Qtd Pedidos], [Clientes Compradores], 0)
 | **Cartões de KPI (Topo)** | `[Receita Bruta]`, `[Lucro Real]`, `[Margem de Lucro Real]`, `[Ticket Médio]`, `[Lead Time Formatado]` | N/A | Visão executiva imediata de saúde do negócio |
 | **Gráfico de Linha (Temporal)** | `[Receita Bruta]`, `[Receita Acumulada]` | `dCalendario[Data]` | Acompanhamento diário e ritmo de crescimento acumulado |
 | **Gráfico de Cascata (Waterfall)** | `[Funil 1 - Receita Potencial]`, `[Funil 2 - Descontos Concedidos]`, `[Funil 3 - Perda Cancelamentos]`, `[Funil 6 - CMV]`, `[Funil 7 - Lucro Real]` | Categorias do Funil | Decomposição financeira de perdas e formação do lucro real |
-| **Gráfico de Barras por Setor** | `[Volume de Vendas]`, `[Receita Bruta]`, `[% Volume por Setor]` | `vw_dim_setor[nome_setor]` | Análise de representatividade de volume e receita por setor |
+| **Gráfico de Barras por Setor** | `[Volume de Vendas]`, `[Receita Bruta]`, `[% Volume por Setor]` | `'padaria vw_dim_setor'[nome_setor]` | Análise de representatividade de volume e receita por setor |
 | **Medidor (Gauge) de SLA** | `[Lead Time Médio de Preparo (Minutos)]` (Valor), `[Meta Lead Time]` (Destino: 30) | N/A | Controle de cumprimento de prazo e SLA operacional |
-| **Tabela / Matriz de Estoque** | `[Estoque Total]`, `[Valor do Estoque (Custo)]`, `[Status Estoque]`, `[Cor Status Estoque]` | `vw_dim_produtos[nome_produto]` | Gestão operacional de compras e alerta imediato de reposição |
+| **Tabela / Matriz de Estoque** | `[Estoque Total]`, `[Valor do Estoque (Custo)]`, `[Status Estoque]`, `[Cor Status Estoque]` | `'padaria vw_dim_produtos'[nome_produto]` | Gestão operacional de compras e alerta imediato de reposição |
