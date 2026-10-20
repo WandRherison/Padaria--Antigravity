@@ -145,6 +145,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =======================================================
+    // BOTÕES DE ACESSO DEMONSTRATIVO (1 CLIQUE - PORTFÓLIO)
+    // =======================================================
+    const btnDemoAdmin = document.getElementById('btn-demo-admin');
+    const btnDemoCliente = document.getElementById('btn-demo-cliente');
+    const inputEmail = document.getElementById('email');
+    const inputSenha = document.getElementById('senha');
+
+    if (btnDemoAdmin) {
+        btnDemoAdmin.addEventListener('click', () => {
+            if (inputEmail && inputSenha) {
+                inputEmail.value = 'admin@teste.com';
+                inputSenha.value = 'admin123';
+                inputEmail.dispatchEvent(new Event('input'));
+                inputSenha.dispatchEvent(new Event('input'));
+            }
+            if (typeof mostrarToast === 'function') {
+                mostrarToast('🛡️ Credenciais de Admin preenchidas! Clique em "Entrar".');
+            }
+            if (botaoLogin) botaoLogin.focus();
+        });
+    }
+
+    if (btnDemoCliente) {
+        btnDemoCliente.addEventListener('click', () => {
+            if (inputEmail && inputSenha) {
+                inputEmail.value = 'cliente@teste.com';
+                inputSenha.value = 'cliente123';
+                inputEmail.dispatchEvent(new Event('input'));
+                inputSenha.dispatchEvent(new Event('input'));
+            }
+            if (typeof mostrarToast === 'function') {
+                mostrarToast('👤 Credenciais de Cliente preenchidas! Clique em "Entrar".');
+            }
+            if (botaoLogin) botaoLogin.focus();
+        });
+    }
+
+    // =======================================================
     // TRAVA DE SEGURANÇA NO ACESSO ADMIN
     // =======================================================
     const linkAdmin = document.getElementById('link-admin-seguro');
@@ -158,7 +196,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (estaLogado === 'true' && tipoUsuario === 'funcionario') {
                 window.location.href = 'Admin/Html/index-admin.html';
             } else {
-                alert('Acesso Restrito: Apenas colaboradores autorizados podem acessar esta área. Faça login com suas credenciais de funcionário.');
+                if (inputEmail && inputSenha) {
+                    inputEmail.value = 'admin@teste.com';
+                    inputSenha.value = 'admin123';
+                }
+                if (typeof mostrarToast === 'function') {
+                    mostrarToast('🔑 Credenciais de Administrador inseridas! Clique em "Entrar" para acessar o painel.');
+                } else {
+                    alert('Acesso Restrito: As credenciais de Administrador de teste foram preenchidas nos campos. Clique em Entrar.');
+                }
+                if (botaoLogin) botaoLogin.focus();
             }
         });
     }

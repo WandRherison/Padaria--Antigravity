@@ -1,8 +1,15 @@
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 
 (async() => {
     try {
-        const conn = await mysql.createConnection({ host: 'localhost', user: 'root', password: 'BKD123!WVPwvp', database: 'padaria', port: 3306 });
+        const conn = await mysql.createConnection({ 
+            host: process.env.DB_HOST || 'localhost', 
+            user: process.env.DB_USER || 'root', 
+            password: process.env.DB_PASSWORD || '', 
+            database: process.env.DB_NAME || 'padaria', 
+            port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306 
+        });
         
         console.log('Atualizando produtos de mercado para mercearia...');
         const [updateRes] = await conn.query('UPDATE produtos SET codigo_setor = 4 WHERE codigo_setor = 5');

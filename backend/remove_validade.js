@@ -5,10 +5,10 @@ async function removeValidade() {
     // Conexão Local (sempre tenta)
     try {
         const localConn = await mysql.createConnection({
-            host: 'localhost',
-            user: 'root',
-            password: 'BKD123!WVPwvp',
-            database: 'padaria'
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'root',
+            password: process.env.DB_PASSWORD || '',
+            database: process.env.DB_NAME || 'padaria'
         });
         
         console.log("Removendo data_validade do DB local...");

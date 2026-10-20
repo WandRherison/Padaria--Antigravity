@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
@@ -9,11 +10,11 @@ const UPLOADS_DIR = path.join(__dirname, 'uploads');
     try {
         console.log("Conectando ao banco de dados...");
         conn = await mysql.createConnection({ 
-            host: 'localhost', 
-            user: 'root', 
-            password: 'BKD123!WVPwvp', 
-            database: 'padaria', 
-            port: 3306 
+            host: process.env.DB_HOST || 'localhost', 
+            user: process.env.DB_USER || 'root', 
+            password: process.env.DB_PASSWORD || '', 
+            database: process.env.DB_NAME || 'padaria', 
+            port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306 
         });
 
         // Garante que a pasta uploads existe

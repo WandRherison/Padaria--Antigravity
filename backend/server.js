@@ -53,7 +53,7 @@ app.get(['/admin/pedidos', '/Admin/HTML/admin-pedidos.html', '/Admin/Html/admin-
 const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : 'BKD123!WVPwvp',
+    password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'padaria',
     port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
     waitForConnections: true,

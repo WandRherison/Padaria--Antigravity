@@ -432,10 +432,10 @@ const produtosIniciais = {
 
 // 2. CONFIGURAÇÃO DO BANCO DE DADOS
 const dbConfig = {
-    host: 'localhost',
-    user: 'root',
-    password: 'BKD123!WVPwvp', // Insira sua senha do MySQL aqui
-    database: 'padaria_diniz'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'padaria'
 };
 
 async function migrarDados() {

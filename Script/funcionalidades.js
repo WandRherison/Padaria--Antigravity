@@ -27,7 +27,54 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof atualizarInterfaceCarrinho === 'function') {
         atualizarInterfaceCarrinho();
     }
+    atualizarNavegacaoUsuario();
 });
+
+function atualizarNavegacaoUsuario() {
+    const estaLogado = localStorage.getItem('usuarioLogado') === 'true';
+    const tipoUsuario = localStorage.getItem('tipoUsuario');
+    const menu = document.querySelector('.menu-principal');
+    if (!menu) return;
+
+    // Se for admin/funcionário, exibe atalho de destaque para o Painel Admin
+    if (estaLogado && tipoUsuario === 'funcionario') {
+        let linkAdmin = document.getElementById('link-header-admin');
+        if (!linkAdmin) {
+            linkAdmin = document.createElement('a');
+            linkAdmin.id = 'link-header-admin';
+            // Ajusta o caminho caso a página atual esteja dentro de subpasta (ex: Admin)
+            const ehSubpastaAdmin = window.location.pathname.includes('/Admin/');
+            linkAdmin.href = ehSubpastaAdmin ? 'index-admin.html' : 'Admin/Html/index-admin.html';
+            linkAdmin.style.cssText = 'background: #4A3B32; color: #FFF; padding: 5px 12px; border-radius: 20px; font-weight: 700; text-decoration: none; border: 1.5px solid #D4AF37; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s;';
+            linkAdmin.innerHTML = '🛡️ Painel Admin';
+            linkAdmin.onmouseover = () => { linkAdmin.style.background = '#2D231E'; linkAdmin.style.transform = 'translateY(-1px)'; };
+            linkAdmin.onmouseout = () => { linkAdmin.style.background = '#4A3B32'; linkAdmin.style.transform = 'none'; };
+            menu.insertBefore(linkAdmin, menu.firstChild);
+        }
+    }
+
+    // Se o usuário estiver logado, altera "Login" para "Sair" com logout limpo
+    const links = menu.querySelectorAll('a');
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && (href.endsWith('padaria-login.html') || href === 'padaria-login.html')) {
+            if (estaLogado) {
+                link.innerText = 'Sair';
+                link.href = '#';
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('usuarioLogado');
+                    localStorage.removeItem('emailUsuario');
+                    localStorage.removeItem('tipoUsuario');
+                    localStorage.removeItem('nomeUsuario');
+                    localStorage.removeItem('carrinho');
+                    if (typeof mostrarToast === 'function') mostrarToast('Você saiu da sua conta.');
+                    setTimeout(() => { window.location.reload(); }, 600);
+                };
+            }
+        }
+    });
+}
 
 
 /* =========================================

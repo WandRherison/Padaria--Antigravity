@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 
 (async () => {
@@ -7,16 +8,16 @@ const mysql = require('mysql2/promise');
         localConn = await mysql.createConnection({ 
             host: 'localhost', 
             user: 'root', 
-            password: 'BKD123!WVPwvp', 
+            password: process.env.DB_PASSWORD || '', 
             database: 'padaria' 
         });
 
         console.log("Conectando ao AWS RDS...");
         awsConn = await mysql.createConnection({ 
-            host: 'padaria.cn46aqys2pwa.us-east-2.rds.amazonaws.com', 
-            user: 'root', 
-            password: 'BKD123!WVPwvp', 
-            database: 'padaria' 
+            host: process.env.DB_HOST || 'localhost', 
+            user: process.env.DB_USER || 'root', 
+            password: process.env.DB_PASSWORD || '', 
+            database: process.env.DB_NAME || 'padaria' 
         });
 
         // 1. Obter dados locais
