@@ -12,8 +12,8 @@ No Power BI, acesse a aba **Modelagem > Nova Tabela** e insira o código DAX aba
 dCalendario = 
 VAR DataMinima = MIN('padaria vw_fato_vendas'[data_pedido_data])
 VAR DataMaxima = MAX('padaria vw_fato_vendas'[data_pedido_data])
--- Inicia no primeiro dia do mês em que ocorreram as primeiras vendas
-VAR DataInicio = IF(ISBLANK(DataMinima), DATE(2026, 7, 1), DATE(YEAR(DataMinima), MONTH(DataMinima), 1))
+-- Inicia no primeiro dia do mês em que ocorreram as primeiras vendas (Janeiro de 2024)
+VAR DataInicio = IF(ISBLANK(DataMinima), DATE(2024, 1, 1), DATE(YEAR(DataMinima), MONTH(DataMinima), 1))
 -- Finaliza no último dia com movimentação de vendas (ou TODAY())
 VAR DataFim    = IF(ISBLANK(DataMaxima), TODAY(), DataMaxima)
 
