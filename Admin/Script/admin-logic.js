@@ -2,6 +2,10 @@
    LÓGICA ADMINISTRATIVA DO CRUD (Integrado ao MySQL via Node.js)
 ======================================================= */
 
+const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
+    ? 'https://padaria-antigravity.onrender.com'
+    : '';
+
 let setorAdminAtual = 'padaria'; 
 let imagensTemporarias = []; 
 let imagensRemovidas = false; 
@@ -30,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function carregarCategoriasAdmin() {
     try {
-        const resposta = await fetch('/api/categorias');
+        const resposta = await fetch(`${API_BASE}/api/categorias`);
         const categorias = await resposta.json();
         const datalist = document.getElementById('lista-categorias');
         if (datalist) {
@@ -103,7 +107,7 @@ async function carregarSetorAdmin(setor) {
         if(buscaInput) buscaInput.placeholder = "Procurar produto...";
         
         try {
-            const resposta = await fetch('/api/produtos');
+            const resposta = await fetch(`${API_BASE}/api/produtos`);
             const produtosCompletos = await resposta.json();
             const produtosDoSetor = produtosCompletos.filter(p => p.nome_setor === setor);
             desenharGradeAdmin(produtosDoSetor);
@@ -171,7 +175,7 @@ async function confirmarExclusao() {
     if (!produtoParaApagarId) return;
 
     try {
-        const resposta = await fetch(`/api/produtos/${produtoParaApagarId}`, {
+        const resposta = await fetch(`${API_BASE}/api/produtos/${produtoParaApagarId}`, {
             method: 'DELETE'
         });
 
@@ -446,7 +450,7 @@ async function salvarProduto() {
     });
 
     try {
-        const url = id ? `/api/produtos/${id}` : '/api/produtos';
+        const url = id ? `${API_BASE}/api/produtos/${id}` : `${API_BASE}/api/produtos`;
         const metodo = id ? 'PUT' : 'POST';
 
         const resposta = await fetch(url, {
@@ -512,7 +516,7 @@ async function mostrarPedidosNoAdmin() {
     
     let pedidos = [];
     try {
-        const resposta = await fetch('/api/pedidos');
+        const resposta = await fetch(`${API_BASE}/api/pedidos`);
         pedidos = await resposta.json();
     } catch (erro) {
         grid.innerHTML = '<p class="msg-vazia" style="grid-column: 1 / -1; text-align: center; color: red;">Erro ao conectar com o banco de dados.</p>';
@@ -598,7 +602,7 @@ async function mostrarPedidosNoAdmin() {
 // =======================================================
 async function alterarStatusPedidoBanco(idPedido, novoStatus) {
     try {
-        const resposta = await fetch(`/api/pedidos/${idPedido}/status`, {
+        const resposta = await fetch(`${API_BASE}/api/pedidos/${idPedido}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: novoStatus })
@@ -638,7 +642,7 @@ async function confirmarCancelamentoAdmin() {
     const justificativa = elementoJustificativa ? elementoJustificativa.value : 'Cancelado pelo administrador';
     
     try {
-        const resposta = await fetch(`/api/pedidos/${idPedidoCancelamentoAtual}/status`, {
+        const resposta = await fetch(`${API_BASE}/api/pedidos/${idPedidoCancelamentoAtual}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'Cancelado', justificativa: justificativa })
@@ -671,7 +675,7 @@ async function mostrarVendasNoAdmin() {
     grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Calculando estatísticas no servidor...</p>';
     
     try {
-        const resposta = await fetch('/api/pedidos');
+        const resposta = await fetch(`${API_BASE}/api/pedidos`);
         const pedidos = await resposta.json();
         
         const finalizados  = pedidos.filter(p => p.status === 'Finalizado');
@@ -747,7 +751,7 @@ async function mostrarClientesNoAdmin() {
     grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Carregando clientes do sistema...</p>';
     
     try {
-        const resposta = await fetch('/api/clientes');
+        const resposta = await fetch(`${API_BASE}/api/clientes`);
         const clientes = await resposta.json();
         
         if (clientes.length === 0) {
@@ -789,7 +793,7 @@ async function abrirModalPedidosCliente(email, nome) {
     
     try {
         // Usa a rota já existente que puxa dados pelo E-mail!
-        const resposta = await fetch(`/api/pedidos/cliente/${email}`);
+        const resposta = await fetch(`${API_BASE}/api/pedidos/cliente/${email}`);
         const pedidos = await resposta.json();
         
         if (pedidos.length === 0) {
@@ -843,7 +847,7 @@ async function limparPedidosGlobaisConcluidos() {
     }
 
     try {
-        const resposta = await fetch('/api/admin/pedidos/concluidos', { 
+        const resposta = await fetch(`${API_BASE}/api/admin/pedidos/concluidos`, { 
             method: 'DELETE' 
         });
         
