@@ -28,7 +28,7 @@
 ======================================================= */
 .iniciar {
     /* O linear-gradient escurece a imagem de fundo para o texto brilhar */
-    background: linear-gradient(rgba(30, 20, 15, 0.6), rgba(30, 20, 15, 0.6)), url('../Imagens\ Secundarias/Fachada.png');
+    background: linear-gradient(rgba(30, 20, 15, 0.6), rgba(30, 20, 15, 0.6)), url('../Imagens\ Secundarias/Fachada.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed; /* Dá um efeito sutil de paralaxe ao rolar a página */
