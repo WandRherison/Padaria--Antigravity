@@ -73,7 +73,14 @@ async function carregarSetorAdmin(setor) {
         btnLimparSistema.style.display = (setor === 'pedidos') ? 'flex' : 'none';
     }
 
-    if (setor === 'vendas') {
+    if (setor === 'dashboard') {
+        gridAdmin.style.display = 'block'; 
+        document.querySelector('.acoes-topo').style.display = 'none'; 
+        document.querySelector('.filtros-admin-container').style.display = 'none';
+        document.getElementById('titulo-setor-admin').innerText = 'Dashboard Executivo (Power BI)';
+        mostrarDashboardNoAdmin();
+    }
+    else if (setor === 'vendas') {
         gridAdmin.style.display = 'block'; 
         document.querySelector('.acoes-topo').style.display = 'none'; 
         document.querySelector('.filtros-admin-container').style.display = 'none';
@@ -859,5 +866,60 @@ async function limparPedidosGlobaisConcluidos() {
         }
     } catch (erro) {
         alert("Erro de conexão ao tentar limpar pedidos globais.");
+    }
+}
+
+// =======================================================
+// DASHBOARD EXECUTIVO POWER BI (EMBEDDED)
+// =======================================================
+function mostrarDashboardNoAdmin() {
+    const grid = document.getElementById('grid-admin-produtos');
+    grid.innerHTML = `
+        <div class="dashboard-bi-container">
+            <div class="dashboard-bi-toolbar">
+                <span class="dashboard-bi-tag">
+                    ⚡ Integrado ao MySQL (AWS RDS) • Governança LGPD
+                </span>
+                <div class="dashboard-bi-acoes">
+                    <button class="btn-bi-acao" onclick="alternarTelaCheiaDashboard()" title="Expandir Relatório em Tela Cheia">
+                        ⛶ Tela Cheia
+                    </button>
+                    <a href="https://app.powerbi.com/view?r=eyJrIjoiZjEwNDJjZjgtNzY3NS00NWFjLThhYjEtYjU3YzgzMzA3NmYxIiwidCI6IjBhMGE3YmMxLWUxYTEtNDNjOS04MGYwLTY0YzEyMzVjY2M0OSJ9" 
+                       target="_blank" 
+                       class="btn-bi-acao"
+                       title="Abrir Dashboard no Power BI Service">
+                        🔗 Nova Guia
+                    </a>
+                </div>
+            </div>
+            <div class="dashboard-bi-frame-wrapper" id="wrapper-frame-bi">
+                <iframe 
+                    id="frame-powerbi"
+                    title="Power BI - Padaria Diniz" 
+                    src="https://app.powerbi.com/view?r=eyJrIjoiZjEwNDJjZjgtNzY3NS00NWFjLThhYjEtYjU3YzgzMzA3NmYxIiwidCI6IjBhMGE3YmMxLWUxYTEtNDNjOS04MGYwLTY0YzEyMzVjY2M0OSJ9" 
+                    frameborder="0" 
+                    allowFullScreen="true">
+                </iframe>
+            </div>
+        </div>
+    `;
+}
+
+function alternarTelaCheiaDashboard() {
+    const frame = document.getElementById('frame-powerbi') || document.getElementById('wrapper-frame-bi');
+    if (!frame) return;
+    
+    if (!document.fullscreenElement) {
+        if (frame.requestFullscreen) {
+            frame.requestFullscreen();
+        } else if (frame.webkitRequestFullscreen) {
+            frame.webkitRequestFullscreen();
+        } else if (frame.msRequestFullscreen) {
+            frame.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
     }
 }
