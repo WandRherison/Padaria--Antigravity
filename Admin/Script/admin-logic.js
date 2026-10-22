@@ -482,6 +482,14 @@ async function salvarProduto() {
 // O RESTANTE DO CÓDIGO (Busca, Vendas e Pedidos) FICA INTACTO
 // =======================================================
 
+// =======================================================
+// ESTADO DE PAGINAÇÃO DE PEDIDOS (Alta Performance)
+// =======================================================
+let todosPedidosCache = [];       // Cache de todos os pedidos carregados da API
+let pedidosFiltradosCache = [];   // Pedidos após filtro de busca e status
+let paginaPedidosAtual = 1;       // Página corrente
+const PEDIDOS_POR_PAGINA = 24;    // 24 pedidos por página para máxima velocidade
+
 function filtrarTelaAdmin() {
     const termo = document.getElementById('busca-admin').value.toLowerCase().trim();
 
@@ -492,19 +500,26 @@ function filtrarTelaAdmin() {
             card.style.display = textoCard.includes(termo) ? 'flex' : 'none';
         });
     } else if (setorAdminAtual === 'pedidos') {
+        // FILTRO EM MEMÓRIA (Ultra rápido, sem tocar no DOM até renderizar a página correta)
         const statusFiltro = document.getElementById('filtro-status-admin').value;
-        const cardsPedidos = document.querySelectorAll('.card-pedido-admin');
         
-        cardsPedidos.forEach(card => {
-            const textoCard = card.innerText.toLowerCase(); // Busca por ID, nome do cliente, etc.
-            const statusDoCard = card.querySelector('select').value; 
-            
-            const atendeBusca = textoCard.includes(termo);
-            const atendeStatus = (statusFiltro === 'todos' || statusDoCard === statusFiltro);
-            
-            card.style.display = (atendeBusca && atendeStatus) ? 'flex' : 'none';
+        pedidosFiltradosCache = todosPedidosCache.filter(pedido => {
+            let atendeStatus = true;
+            if (statusFiltro === 'ativos') {
+                atendeStatus = (pedido.status === 'Pendente' || pedido.status === 'Em produção');
+            } else if (statusFiltro !== 'todos') {
+                atendeStatus = (pedido.status === statusFiltro);
+            }
+            if (!atendeStatus) return false;
+
+            if (!termo) return true;
+            const textoBusca = `${pedido.id} ${pedido.cliente} ${pedido.cpf || ''} ${pedido.pagamento || ''} ${pedido.dataPedido || ''} ${pedido.itens.map(i => i.nome).join(' ')}`.toLowerCase();
+            return textoBusca.includes(termo);
         });
-    } else if (setorAdminAtual !== 'vendas') {
+
+        paginaPedidosAtual = 1;
+        renderizarGradePedidosPaginados();
+    } else if (setorAdminAtual !== 'vendas' && setorAdminAtual !== 'dashboard') {
         // Se for produtos (Padaria, Açougue...)
         const cardsProdutos = document.querySelectorAll('.card-admin');
         cardsProdutos.forEach(card => {
@@ -514,31 +529,71 @@ function filtrarTelaAdmin() {
     }
 }
 
-/// =======================================================
-// MOSTRAR PEDIDOS (Buscando dinamicamente do MySQL)
 // =======================================================
-async function mostrarPedidosNoAdmin() {
+// MOSTRAR PEDIDOS (Buscando dinamicamente do MySQL + Paginação)
+// =======================================================
+async function mostrarPedidosNoAdmin(forcarRecarregamento = false) {
     const grid = document.getElementById('grid-admin-produtos');
-    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Carregando pedidos do sistema...</p>';
+    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px 0; font-size: 1.1rem; color: var(--cafe-claro);">⚡ Carregando pedidos do sistema...</p>';
     
-    let pedidos = [];
-    try {
-        const resposta = await fetch(`${API_BASE}/api/pedidos`);
-        pedidos = await resposta.json();
-    } catch (erro) {
-        grid.innerHTML = '<p class="msg-vazia" style="grid-column: 1 / -1; text-align: center; color: red;">Erro ao conectar com o banco de dados.</p>';
-        return;
+    if (forcarRecarregamento || todosPedidosCache.length === 0) {
+        try {
+            const resposta = await fetch(`${API_BASE}/api/pedidos`);
+            todosPedidosCache = await resposta.json();
+        } catch (erro) {
+            grid.innerHTML = '<p class="msg-vazia" style="grid-column: 1 / -1; text-align: center; color: red;">Erro ao conectar com o banco de dados dos pedidos.</p>';
+            return;
+        }
     }
     
-    if (pedidos.length === 0) {
-        grid.innerHTML = '<p class="msg-vazia" style="grid-column: 1 / -1; text-align: center; font-size: 1.2rem;">Nenhum pedido recebido ainda.</p>';
+    if (todosPedidosCache.length === 0) {
+        grid.innerHTML = '<p class="msg-vazia" style="grid-column: 1 / -1; text-align: center; font-size: 1.2rem; padding: 40px 0;">Nenhum pedido recebido ainda.</p>';
         return;
     }
 
-    // ==========================================
-    // MUDANÇA AQUI: Inserindo o botão no topo do Grid
-    // ==========================================
-    grid.innerHTML = ``;
+    const statusFiltro = document.getElementById('filtro-status-admin') ? document.getElementById('filtro-status-admin').value : 'todos';
+    const termo = document.getElementById('busca-admin') ? document.getElementById('busca-admin').value.toLowerCase().trim() : '';
+
+    pedidosFiltradosCache = todosPedidosCache.filter(pedido => {
+        let atendeStatus = true;
+        if (statusFiltro === 'ativos') {
+            atendeStatus = (pedido.status === 'Pendente' || pedido.status === 'Em produção');
+        } else if (statusFiltro !== 'todos') {
+            atendeStatus = (pedido.status === statusFiltro);
+        }
+        if (!atendeStatus) return false;
+
+        if (!termo) return true;
+        const textoBusca = `${pedido.id} ${pedido.cliente} ${pedido.cpf || ''} ${pedido.pagamento || ''} ${pedido.dataPedido || ''} ${pedido.itens.map(i => i.nome).join(' ')}`.toLowerCase();
+        return textoBusca.includes(termo);
+    });
+
+    paginaPedidosAtual = 1;
+    renderizarGradePedidosPaginados();
+}
+
+function mudarPaginaPedidos(novaPagina) {
+    paginaPedidosAtual = novaPagina;
+    renderizarGradePedidosPaginados();
+    const mainAdmin = document.querySelector('.main-admin');
+    if (mainAdmin) mainAdmin.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderizarGradePedidosPaginados() {
+    const grid = document.getElementById('grid-admin-produtos');
+    if (!grid) return;
+
+    if (pedidosFiltradosCache.length === 0) {
+        grid.innerHTML = '<p class="msg-vazia" style="grid-column: 1 / -1; text-align: center; font-size: 1.2rem; padding: 40px 0;">Nenhum pedido encontrado com os filtros selecionados.</p>';
+        return;
+    }
+
+    const totalPaginas = Math.ceil(pedidosFiltradosCache.length / PEDIDOS_POR_PAGINA) || 1;
+    if (paginaPedidosAtual > totalPaginas) paginaPedidosAtual = totalPaginas;
+    if (paginaPedidosAtual < 1) paginaPedidosAtual = 1;
+
+    const inicio = (paginaPedidosAtual - 1) * PEDIDOS_POR_PAGINA;
+    const pedidosPagina = pedidosFiltradosCache.slice(inicio, inicio + PEDIDOS_POR_PAGINA);
 
     const corPorStatus = {
         'Pendente':    '#C8973D',
@@ -546,8 +601,9 @@ async function mostrarPedidosNoAdmin() {
         'Finalizado':  '#28a745',
         'Cancelado':   '#D9534F'
     };
-    
-    pedidos.forEach((pedido) => {
+
+    // Monta os cards em memória (Array -> string única, SEM innerHTML +=)
+    const cardsHTML = pedidosPagina.map(pedido => {
         const corHeader = corPorStatus[pedido.status] || '#C8973D';
         const totalFormatado = parseFloat(pedido.valorTotal).toFixed(2).replace('.', ',');
         
@@ -559,7 +615,7 @@ async function mostrarPedidosNoAdmin() {
             `<li><span>${item.nome}</span><strong>${item.quantidade}x</strong></li>`
         ).join('');
 
-        grid.innerHTML += `
+        return `
             <div class="card-pedido-admin">
                 <div class="pedido-header" style="background: ${corHeader};">
                     <h3>Pedido #${pedido.id}</h3>
@@ -602,11 +658,27 @@ async function mostrarPedidosNoAdmin() {
                 </div>
             </div>
         `;
-    });
+    }).join('');
+
+    const paginacaoBarra = `
+        <div class="paginacao-admin-container" style="grid-column: 1 / -1;">
+            <div class="paginacao-info">
+                Exibindo <strong>${inicio + 1}–${Math.min(inicio + PEDIDOS_POR_PAGINA, pedidosFiltradosCache.length)}</strong> de <strong>${pedidosFiltradosCache.length}</strong> pedidos
+            </div>
+            <div class="paginacao-botoes">
+                <button class="btn-paginacao" onclick="mudarPaginaPedidos(1)" ${paginaPedidosAtual === 1 ? 'disabled' : ''} title="Primeira Página">⏮️</button>
+                <button class="btn-paginacao" onclick="mudarPaginaPedidos(${paginaPedidosAtual - 1})" ${paginaPedidosAtual === 1 ? 'disabled' : ''}>◀️ Anterior</button>
+                <span class="paginacao-numero">Página ${paginaPedidosAtual} de ${totalPaginas}</span>
+                <button class="btn-paginacao" onclick="mudarPaginaPedidos(${paginaPedidosAtual + 1})" ${paginaPedidosAtual >= totalPaginas ? 'disabled' : ''}>Próxima ▶️</button>
+                <button class="btn-paginacao" onclick="mudarPaginaPedidos(${totalPaginas})" ${paginaPedidosAtual >= totalPaginas ? 'disabled' : ''} title="Última Página">⏭️</button>
+            </div>
+        </div>
+    `;
+
+    // Atualiza o DOM UMA ÚNICA VEZ com a barra de paginação no topo e na base
+    grid.innerHTML = paginacaoBarra + cardsHTML + paginacaoBarra;
 }
-// =======================================================
-// ENVIAR MUDANÇA DE STATUS SIMPLES PARA O BANCO
-// =======================================================
+
 async function alterarStatusPedidoBanco(idPedido, novoStatus) {
     try {
         const resposta = await fetch(`${API_BASE}/api/pedidos/${idPedido}/status`, {
@@ -617,7 +689,9 @@ async function alterarStatusPedidoBanco(idPedido, novoStatus) {
 
         if (resposta.ok) {
             if(typeof mostrarToast === 'function') mostrarToast(`Status atualizado para: ${novoStatus}`);
-            mostrarPedidosNoAdmin();
+            const ped = todosPedidosCache.find(p => String(p.id) === String(idPedido));
+            if (ped) ped.status = novoStatus;
+            renderizarGradePedidosPaginados();
         }
     } catch (erro) {
         alert("Erro ao atualizar status do pedido.");
@@ -664,8 +738,13 @@ async function confirmarCancelamentoAdmin() {
                 alert("Pedido cancelado e salvo no banco!");
             }
             
+            const ped = todosPedidosCache.find(p => String(p.id) === String(idPedidoCancelamentoAtual));
+            if (ped) {
+                ped.status = 'Cancelado';
+                ped.justificativa = justificativa;
+            }
             idPedidoCancelamentoAtual = null;
-            mostrarPedidosNoAdmin(); // Recarrega os pedidos dinamicamente na tela
+            renderizarGradePedidosPaginados();
         } else {
             const erroApi = await resposta.json();
             alert("Falha relatada pelo servidor: " + (erroApi.erro || 'Erro desconhecido'));
@@ -860,7 +939,7 @@ async function limparPedidosGlobaisConcluidos() {
         
         if (resposta.ok) {
             if(typeof mostrarToast === 'function') mostrarToast("Limpeza global concluída com sucesso!");
-            mostrarPedidosNoAdmin(); // Recarrega a tela na mesma hora
+            mostrarPedidosNoAdmin(true); // Força novo fetch porque pedidos foram limpos do banco
         } else {
             alert("Erro ao executar a limpeza global.");
         }
