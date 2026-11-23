@@ -377,8 +377,10 @@ body {
 }
 
 @media (max-width: 768px) {
+
     /* Evita vazamento horizontal da página */
-    html, body {
+    html,
+    body {
         overflow-x: hidden;
     }
 
@@ -423,13 +425,21 @@ body {
         justify-content: center;
         min-width: 44px;
         min-height: 44px;
-        border: 1px solid rgba(212, 175, 55, 0.5);
+        border: 1.5px solid var(--cafe-escuro);
         border-radius: 10px;
-        background: rgba(255, 255, 255, 0.08);
-        color: var(--branco);
-        font-size: 1.25rem;
+        background: var(--branco);
+        color: var(--cafe-escuro);
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1;
         cursor: pointer;
         order: 3;
+    }
+
+    body.dark-mode .btn-menu-mobile {
+        background: #2D231E;
+        color: #FFF9F0;
+        border-color: var(--dourado-suave);
     }
 
     .menu-principal {
@@ -448,8 +458,16 @@ body {
         font-size: 0.98rem;
         padding: 12px 14px;
         border-radius: 10px;
-        background: rgba(255, 255, 255, 0.06);
+        background: var(--creme-fundo);
+        color: var(--cafe-escuro);
+        border: 1px solid rgba(74, 59, 50, 0.12);
         text-align: left;
+    }
+
+    body.dark-mode .menu-principal a {
+        background: #2D231E;
+        color: #FFF9F0;
+        border-color: rgba(212, 175, 55, 0.3);
     }
 
     .menu-principal.mobile-aberto {
@@ -466,7 +484,8 @@ body {
         width: 100%;
         max-width: 100%;
         margin: 4px 0 0 0;
-        order: 10; /* Sempre no final do bloco do menu */
+        order: 10;
+        /* Sempre no final do bloco do menu */
     }
 
     #input-busca {
@@ -480,7 +499,8 @@ body {
     }
 
     /* Botões Carrinho e Tema com área de toque mínima acessível */
-    #btn-tema, #btn-carrinho {
+    #btn-tema,
+    #btn-carrinho {
         min-height: 44px;
         padding: 6px 12px;
         font-size: 1rem;
