@@ -131,7 +131,7 @@ const NOVOS_PRODUTOS = [
 
       const webpUri = await carregarWebpWhiteBg(p.img);
       await conn.query(
-        'INSERT INTO imagens_produtos (codigo_produto, imagem_base64) VALUES (?, ?)',
+        'INSERT INTO imagens_produtos (codigo_produto, imagem_url) VALUES (?, ?)',
         [resProd.insertId, webpUri]
       );
       inseridos++;
