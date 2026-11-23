@@ -245,6 +245,27 @@ app.get('/api/produtos', async (req, res) => {
     }
 });
 
+// ROTA DE PRODUTO INDIVIDUAL (Otimização para pagina-agendamento)
+app.get('/api/produtos/:id', async (req, res) => {
+    try {
+        const [results] = await db.query(`
+            SELECT p.*, s.nome AS nome_setor,
+                   (SELECT i.imagem_url FROM imagens_produtos i WHERE i.codigo_produto = p.codigo_produto LIMIT 1) AS imagem_url
+            FROM produtos p
+            JOIN setor s ON p.codigo_setor = s.codigo_setor
+            WHERE p.codigo_produto = ?
+            LIMIT 1
+        `, [req.params.id]);
+        if (results.length === 0) {
+            return res.status(404).json({ erro: "Produto não encontrado." });
+        }
+        res.status(200).json(results[0]);
+    } catch (err) {
+        console.error("Erro ao buscar produto individual:", err);
+        res.status(500).json({ erro: "Erro ao buscar produto." });
+    }
+});
+
 // ==========================================
 // ROTA DE CATEGORIAS (FILTROS DINÂMICOS)
 // ==========================================

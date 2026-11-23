@@ -17,18 +17,18 @@
         <section>
             <div class="logo-e-marca">
                 <div class="marca">
-                     <a href="padaria-landinpage.html">Padaria Diniz</a>
+                    <a href="padaria-landinpage.html">Padaria Diniz</a>
                 </div>
                 <div class="logo">
-                    <a href="padaria-landinpage.html" class="logo img">
+                    <a href="padaria-landinpage.html" class="logo img" aria-label="Ir para a página inicial">
                         <img src="./Imagens/Logo.png" alt="Logo da Padaria">
                     </a>
                 </div>
             </div>
 
-            <nav class="menu-principal">
-                <button id="btn-tema" onclick="alternarTema()">🌙</button>
-                <button id="btn-carrinho" onclick="abrirCarrinho()">🛒(<span id="contador-carrinho">0</span>)</button>
+            <nav class="menu-principal" aria-label="Menu Principal">
+                <button id="btn-tema" onclick="alternarTema()" aria-label="Alternar tema">🌙</button>
+                <button id="btn-carrinho" onclick="abrirCarrinho()" aria-label="Abrir carrinho">🛒(<span id="contador-carrinho">0</span>)</button>
 
                 <a href="meus-pedidos.html">Meus Pedidos</a>
                 <a href="pagina-produtos.html">Carrinho</a>
@@ -39,74 +39,155 @@
 
     <main class="main-agendamento">
         <section class="container-produtos">
-            
-            <div class="coluna-da-esquerda">
-                <div class="imagem-principal">
-                    <img id="produtoimagem" alt="Imagem do Produto">
-                </div>
-                <div class="lista-imagens" id="container-miniaturas">
-                </div>
+
+            <!-- Breadcrumb e selo Peça e Retire -->
+            <div class="ag-topo-navegacao">
+                <nav class="ag-breadcrumb" aria-label="Caminho de navegação">
+                    <a href="padaria-landinpage.html">Início</a>
+                    <span aria-hidden="true">›</span>
+                    <a id="link-breadcrumb-setor" href="pagina-catalogo.html?filtro=retiravel">Catálogo</a>
+                    <span aria-hidden="true">›</span>
+                    <span id="breadcrumb-produto" class="atual">Carregando...</span>
+                </nav>
+                <span class="ag-badge-retire">🛒 Peça e Retire</span>
             </div>
 
-            <div class="coluna-da-direita">
-                <h1 id="tituloproduto" class="titulo-produto">Carregando Produto...</h1>
-                <p class="label-descrição">Descrição do Produto:</p>
-                <div class="Descrição">
-                    <p id="descricao">Carregando detalhes...</p>
+            <!-- Aviso antecipado caso não esteja logado -->
+            <div id="aviso-login-agendamento" class="ag-aviso-login" style="display: none;">
+                <span>🔒 Faça login para adicionar produtos ao seu carrinho.</span>
+                <a href="padaria-login.html" class="ag-link-login">Entrar agora →</a>
+            </div>
+
+            <div class="ag-grid-principal">
+                <!-- Coluna Esquerda: Imagem limpa -->
+                <div class="coluna-da-esquerda">
+                    <div class="imagem-principal">
+                        <span id="badge-desconto" class="ag-badge-desconto" style="display: none;"></span>
+                        <img id="produtoimagem" src="./Imagens/Logo.png" alt="Imagem do Produto">
+                    </div>
+                    <p class="ag-nota-frescor">Preparado com carinho • Retirada rápida no balcão sem fila</p>
                 </div>
 
-                <div class="container-valores">
-                    <div class="container-qtd">
-                        <label>Quantidade</label>
-                        <div class="preço-box qtd-box">
-                            <button id="ret-btn" class="qtd-btn">-</button>
-                            <span id="Qtd">1</span>
-                            <button id="plus-btn" class="qtd-btn">+</button>
+                <!-- Coluna Direita: Preço, Estoque, Agendamento Rápido e Ação -->
+                <div class="coluna-da-direita">
+                    <div class="ag-meta-topo">
+                        <span id="marca-produto" class="ag-marca">Fabricação Própria</span>
+                        <span id="badge-estoque" class="ag-badge-estoque">● Verificando estoque...</span>
+                    </div>
+
+                    <h1 id="tituloproduto" class="titulo-produto">Carregando Produto...</h1>
+
+                    <div class="Descrição">
+                        <p id="descricao">Carregando detalhes do produto...</p>
+                    </div>
+
+                    <!-- Preço Unitário + Oferta -->
+                    <div class="ag-preco-unitario">
+                        <span id="preco-unitario-atual" class="ag-preco-atual">R$ 0,00</span>
+                        <span id="unidade-produto" class="ag-unidade"></span>
+                        <span id="preco-unitario-antigo" class="ag-preco-antigo" style="display: none;"></span>
+                    </div>
+
+                    <!-- Banner inteligente: reaproveitar horário já agendado no carrinho -->
+                    <div id="banner-sync-carrinho" class="ag-banner-sync" style="display: none;">
+                        <div>
+                            <strong>💡 Você já tem itens no carrinho</strong>
+                            <p id="texto-sync-carrinho"></p>
+                        </div>
+                        <button type="button" id="btn-usar-horario-carrinho" class="ag-btn-sync">
+                            Usar mesmo horário
+                        </button>
+                    </div>
+
+                    <!-- Bloco de Agendamento Rápido (100% compatível com Dark Mode) -->
+                    <div class="bloco-agendamento">
+                        <div class="ag-bloco-header">
+                            <h2>📅 Quando você quer retirar?</h2>
+                            <span class="ag-regra-preparo">Preparo mín. 2h • 07:30 às 20:00</span>
+                        </div>
+
+                        <!-- Atalhos de Data -->
+                        <div class="ag-atalhos-data" role="group" aria-label="Escolha a data de retirada">
+                            <button type="button" class="ag-chip-data" data-date-mode="hoje">
+                                <strong>Hoje</strong>
+                                <small id="sub-hoje">A partir de +2h</small>
+                            </button>
+                            <button type="button" class="ag-chip-data ativo" data-date-mode="amanha">
+                                <strong>Amanhã</strong>
+                                <small>Todos horários</small>
+                            </button>
+                            <button type="button" class="ag-chip-data" data-date-mode="outra">
+                                <strong>Outra data</strong>
+                                <small>Até 30 dias</small>
+                            </button>
+                        </div>
+
+                        <div id="box-outra-data" class="ag-outra-data" style="display: none;">
+                            <label for="data-agendamento-produto" class="sr-only">Escolher outra data de retirada</label>
+                            <input type="date" id="data-agendamento-produto">
+                        </div>
+
+                        <!-- Abas de Período -->
+                        <div class="ag-periodos" role="tablist" aria-label="Período do dia">
+                            <button type="button" class="ag-chip-periodo ativo" data-period="manha">☀️ Manhã</button>
+                            <button type="button" class="ag-chip-periodo" data-period="tarde">🌤️ Tarde</button>
+                            <button type="button" class="ag-chip-periodo" data-period="noite">🌙 Noite</button>
+                        </div>
+
+                        <!-- Chips de Horários -->
+                        <div id="slots-grid" class="ag-slots-grid" aria-live="polite"></div>
+                        <p id="aviso-sem-horario" class="ag-aviso-sem-horario" style="display: none;"></p>
+                    </div>
+
+                    <!-- Quantidade + Subtotal + CTA Principal -->
+                    <div class="ag-resumo-acao">
+                        <div class="ag-linha-qtd-total">
+                            <div class="container-qtd">
+                                <label for="Qtd">Quantidade</label>
+                                <div class="preço-box qtd-box">
+                                    <button type="button" id="ret-btn" class="qtd-btn" aria-label="Diminuir quantidade">−</button>
+                                    <span id="Qtd">1</span>
+                                    <button type="button" id="plus-btn" class="qtd-btn" aria-label="Aumentar quantidade">+</button>
+                                </div>
+                            </div>
+
+                            <div class="ag-subtotal-box">
+                                <span class="ag-subtotal-label">Subtotal</span>
+                                <div id="preço-final" class="ag-subtotal-valor">R$ 0,00</div>
+                            </div>
+                        </div>
+
+                        <div class="btn-baixo">
+                            <a id="btn-voltar-setor" href="pagina-catalogo.html?filtro=retiravel" class="botao-voltar">← Voltar</a>
+                            <button type="button" class="botao-agendar" id="btn-adicionar-carrinho">
+                                🛒 Adicionar ao Carrinho
+                            </button>
                         </div>
                     </div>
 
-                    <div class="container-qtd">
-                        <label>Valor Total</label>
-                        <div id="preço-final" class="preço-box valor-box">
-                            R$ 0,00
+                    <!-- Feedback Pós-Adição -->
+                    <div id="banner-pos-adicao" class="ag-banner-pos-adicao" style="display: none;" aria-live="polite">
+                        <span id="texto-pos-adicao">✅ Item adicionado ao carrinho!</span>
+                        <div class="ag-acoes-pos-adicao">
+                            <a id="btn-continuar-comprando" href="pagina-catalogo.html?filtro=retiravel" class="ag-btn-secundario">Continuar comprando</a>
+                            <a href="pagina-produtos.html" class="ag-btn-checkout">Ir para o Checkout →</a>
                         </div>
                     </div>
-                </div>
-
-                <div class="bloco-agendamento" style="
-                    margin-top: 20px;
-                    padding: 16px;
-                    background: #FFF8EC;
-                    border: 2px solid #C8973D;
-                    border-radius: 12px;
-                ">
-                    <h3 style="font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 800; color: #4A3B32; margin: 0 0 14px;">📅 Agendamento</h3>
-                    
-                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #4A3B32; margin-bottom: 5px;">Data de Retirada</label>
-                    <input type="date" id="data-agendamento-produto" style="
-                        width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid #D4C5A9;
-                        font-family: 'Nunito', sans-serif; font-size: 0.95rem; background: white; margin-bottom: 12px; cursor: pointer;
-                    ">
-
-                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #4A3B32; margin-bottom: 5px;">Horário de Retirada</label>
-                    <select id="hora-agendamento-produto" style="
-                        width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid #D4C5A9;
-                        font-family: 'Nunito', sans-serif; font-size: 0.95rem; background: white; cursor: pointer;
-                    ">
-                        <option value="">Selecione...</option>
-                        <!-- Gerado por JS -->
-                    </select>
-                </div>
-
-                <div class="btn-baixo">
-                    <a href="pagina-catalogo.html?filtro=retiravel" class="botao-voltar">← Voltar</a>
-                    <button class="botao-agendar" id="btn-adicionar-carrinho" style="margin-top: 20px;">
-                        🛒 Adicionar ao Carrinho
-                    </button>
                 </div>
             </div>
         </section>
     </main>
+
+    <!-- Barra Fixa Inferior no Mobile -->
+    <div id="mobile-sticky-bar" class="ag-mobile-sticky">
+        <div class="ag-sticky-info">
+            <span id="mobile-resumo-slot" class="ag-sticky-slot">Selecione data e horário</span>
+            <strong id="mobile-total-valor" class="ag-sticky-total">R$ 0,00</strong>
+        </div>
+        <button type="button" id="btn-adicionar-mobile" class="ag-sticky-btn">
+            🛒 Adicionar
+        </button>
+    </div>
 
     <div id="carrinho-overlay" class="carrinho-overlay" onclick="fecharCarrinho()"></div>
     <aside id="carrinho-lateral" class="carrinho-oculto">
@@ -122,7 +203,7 @@
     </aside>
 
     <div id="toast-container"></div>
-    
+
     <script src="Script/funcionalidades.js"></script>
     <script src="Script/agendamento.js"></script>
 </body>
