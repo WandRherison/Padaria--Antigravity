@@ -214,7 +214,7 @@
     background-color: var(--branco);
     padding: 1.5rem;
     border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.03);
+    border: none;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
     text-align: left;
     display: flex;
@@ -354,7 +354,7 @@ body.dark-mode #barra-busca {
 
 body.dark-mode .card-container {
     background-color: #2A1C15;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: none;
 }
 
 body.dark-mode .card-produto h3,

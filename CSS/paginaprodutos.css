@@ -841,11 +841,11 @@ body.dark-mode .codigo-destaque, body.dark-mode .modal-footer {
 
 .grupo-retirada-box {
     background: var(--branco);
-    border: 1px solid #E8DDD0;
+    border: none;
     border-radius: 18px;
     overflow: hidden;
     margin-bottom: 16px;
-    box-shadow: 0 6px 20px rgba(74, 59, 50, 0.04);
+    box-shadow: 0 4px 18px rgba(74, 59, 50, 0.05);
 }
 
 .grupo-retirada-header {
@@ -854,9 +854,9 @@ body.dark-mode .codigo-destaque, body.dark-mode .modal-footer {
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 11px 16px;
-    background: #FAF3E8;
-    border-bottom: 1px solid #E8DDD0;
+    padding: 14px 18px 8px;
+    background: var(--branco);
+    border-bottom: none;
     font-size: 0.85rem;
     color: var(--cafe-escuro);
 }
@@ -872,12 +872,12 @@ body.dark-mode .codigo-destaque, body.dark-mode .modal-footer {
     border: none;
     border-radius: 0;
     box-shadow: none;
-    border-bottom: 1px solid #F0E7DC;
+    border-bottom: none;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 14px;
-    padding: 14px 16px;
+    padding: 12px 18px 16px;
 }
 
 .grupo-retirada-itens .card-produto-checkout:last-child {
@@ -889,7 +889,7 @@ body.dark-mode .codigo-destaque, body.dark-mode .modal-footer {
     height: 72px;
     object-fit: contain;
     background: #FFFFFF;
-    border: 1px solid #EFE7DC;
+    border: none;
     border-radius: 12px;
     padding: 4px;
     flex-shrink: 0;
@@ -961,19 +961,19 @@ body.dark-mode .codigo-destaque, body.dark-mode .modal-footer {
     padding: 12px;
     margin-bottom: 8px;
     border-radius: 12px;
-    border: 1.5px solid #E5D9C8;
-    background: var(--branco);
+    border: none;
+    background: #FAF6F0;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .pay-card-checkout:hover {
-    border-color: var(--dourado-suave);
+    background: #F4EDE2;
 }
 
 .pay-card-checkout.ativo {
-    border-color: var(--dourado-suave);
-    background: rgba(212, 175, 55, 0.1);
+    border: none;
+    background: rgba(212, 175, 55, 0.18);
 }
 
 .pay-card-body {
@@ -1115,19 +1115,19 @@ body.dark-mode .coluna-resumo,
 body.dark-mode .gateway-box,
 body.dark-mode .checkout-mobile-sticky {
     background: #221B18;
-    border-color: #3A2E28;
+    border: none;
     color: #F7EFE7;
 }
 
 body.dark-mode .grupo-retirada-header {
-    background: #2C231F;
-    border-color: #3A2E28;
+    background: #221B18;
+    border: none;
     color: #F7EFE7;
 }
 
 body.dark-mode .grupo-retirada-itens .card-produto-checkout {
     background: transparent;
-    border-color: #332823;
+    border: none;
 }
 
 body.dark-mode .pay-card-checkout,
@@ -1135,14 +1135,14 @@ body.dark-mode .checkout-qtd-stepper,
 body.dark-mode .gateway-field input,
 body.dark-mode .gateway-field select,
 body.dark-mode .pix-input-row input {
-    background: #1A1412;
-    border-color: #42352E;
+    background: #2C231F;
+    border: none;
     color: #F7EFE7;
 }
 
 body.dark-mode .pay-card-checkout.ativo {
-    background: rgba(212, 175, 55, 0.16);
-    border-color: var(--dourado-suave);
+    background: rgba(212, 175, 55, 0.22);
+    border: none;
 }
 
 body.dark-mode .checkout-lista-topo h2,

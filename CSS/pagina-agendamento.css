@@ -29,10 +29,10 @@ body {
 
 .container-produtos {
     background: var(--branco);
-    border: 1px solid var(--borda-suave);
+    border: none;
     border-radius: 24px;
     padding: 1.75rem 2rem 2.25rem;
-    box-shadow: 0 12px 32px rgba(74, 59, 50, 0.06);
+    box-shadow: 0 10px 28px rgba(74, 59, 50, 0.05);
 }
 
 /* Topo: Breadcrumb + Selo */
@@ -126,7 +126,7 @@ body {
     position: relative;
     width: 100%;
     background: #FFFFFF;
-    border: 1px solid var(--borda-suave);
+    border: none;
     border-radius: 20px;
     padding: 1.5rem;
     display: flex;
@@ -587,11 +587,11 @@ body.dark-mode {
 
 body.dark-mode .container-produtos {
     background: #221B18;
-    border-color: #3A2E28;
+    border: none;
 }
 
 body.dark-mode .ag-topo-navegacao {
-    border-color: #3A2E28;
+    border-color: rgba(255, 255, 255, 0.06);
 }
 
 body.dark-mode .ag-breadcrumb,
@@ -621,7 +621,7 @@ body.dark-mode .bloco-agendamento,
 body.dark-mode .ag-resumo-acao,
 body.dark-mode .ag-banner-sync {
     background: #2C231F;
-    border-color: #42352E;
+    border: none;
 }
 
 body.dark-mode .ag-chip-data,
@@ -631,8 +631,8 @@ body.dark-mode .qtd-box,
 body.dark-mode .botao-voltar,
 body.dark-mode .ag-outra-data input[type="date"],
 body.dark-mode .ag-btn-secundario {
-    background: #1C1614;
-    border-color: #473932;
+    background: #221B18;
+    border: none;
     color: #F7EFE7;
 }
 
