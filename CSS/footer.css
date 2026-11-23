@@ -240,4 +240,36 @@ footer {
         transform: translateX(0); /* Remove o movimento lateral no celular */
         color: var(--dourado-suave);
     }
+
+    .zap {
+        bottom: 18px;
+        right: 18px;
+        width: 52px;
+        height: 52px;
+    }
+
+    .zap img {
+        width: 28px;
+    }
+}
+
+.badges-pagamento {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.badge-pgto {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    color: var(--branco);
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }

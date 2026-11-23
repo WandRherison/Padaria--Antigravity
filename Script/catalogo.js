@@ -15,7 +15,7 @@ let botoesFiltro = document.querySelectorAll(".btn-filtro");
 let categoriaAtual = "todos";
 
 // AGORA É UM ARRAY VAZIO QUE SERÁ PREENCHIDO PELO BANCO DE DADOS
-let listaCompleta = []; 
+let listaCompleta = [];
 
 function removerAcentos(texto) {
     if (!texto) return "";
@@ -41,14 +41,14 @@ async function carregarProdutosDoBanco() {
             ? 'http://localhost:3000'
             : '';
         const resposta = await fetch(`${API_BASE}/api/produtos`);
-        
+
         // Converte a resposta do banco para um Array de Objetos (JSON)
-        listaCompleta = await resposta.json(); 
-        
+        listaCompleta = await resposta.json();
+
         renderizarAbasSetores();
         renderizarPilulasCategorias();
         // Depois de salvar os dados na variável global, aplica os filtros para renderizar a tela
-        aplicarFiltros(); 
+        aplicarFiltros();
     } catch (erro) {
         console.error("Erro ao carregar produtos do banco:", erro);
         containerProdutos.innerHTML = `<p style="padding: 20px; color: red; font-weight: bold;">Erro ao carregar o catálogo. O servidor está rodando?</p>`;
@@ -60,7 +60,7 @@ async function carregarProdutosDoBanco() {
 // =======================================================
 function renderizarProdutos(lista) {
     containerProdutos.innerHTML = "";
-    
+
     if (lista.length === 0) {
         containerProdutos.innerHTML = `<p style="padding: 20px; color: #666; font-weight: bold;">Nenhum produto encontrado.</p>`;
         return;
@@ -71,7 +71,7 @@ function renderizarProdutos(lista) {
         // Formata os preços substituindo o ponto do banco pela vírgula do padrão brasileiro
         const precoFormatado = parseFloat(produto.valor).toFixed(2).replace('.', ',');
         const unidade = produto.unidade_medida ? ` / ${produto.unidade_medida}` : "";
-        
+
         let precoHTML = "";
         if (produto.preco_oferta) {
             const ofertaFormatada = parseFloat(produto.preco_oferta).toFixed(2).replace('.', ',');
@@ -145,7 +145,7 @@ function extrairCategorias() {
         if (setorAtual !== "todos" && setorAtual !== "oferta" && setorAtual !== "retiravel") {
             if (!p.nome_setor || p.nome_setor.toLowerCase() !== setorAtual) return;
         }
-        
+
         if (p.categoria) categorias.add(p.categoria.toLowerCase());
     });
     return Array.from(categorias).sort();
@@ -154,16 +154,16 @@ function extrairCategorias() {
 function renderizarAbasSetores() {
     const container = document.getElementById("container-setores");
     if (!container) return;
-    
+
     container.innerHTML = "";
-    
+
     // Setor "Todos" e Botões Especiais
     const botoesFixos = [
         { id: 'todos', label: 'Todos os Setores' },
         { id: 'oferta', label: '🔥 Promoções' },
         { id: 'retiravel', label: '🛒 Peça e Retire' }
     ];
-    
+
     botoesFixos.forEach(b => {
         const btn = document.createElement("button");
         btn.className = `tab-setor ${setorAtual === b.id ? 'ativo' : ''}`;
@@ -171,7 +171,7 @@ function renderizarAbasSetores() {
         btn.onclick = () => selecionarSetor(b.id);
         container.appendChild(btn);
     });
-    
+
     // Setores dinâmicos do banco
     const setores = extrairSetores();
     setores.forEach(s => {
@@ -186,16 +186,16 @@ function renderizarAbasSetores() {
 function renderizarPilulasCategorias() {
     const container = document.getElementById("container-filtros");
     if (!container) return;
-    
+
     container.innerHTML = "";
-    
+
     // Sempre tem o botão "Todos" (daquele setor)
     const btnTodos = document.createElement("button");
     btnTodos.className = `btn-filtro ${categoriaAtual === 'todos' ? 'ativo' : ''}`;
     btnTodos.innerText = "Todos";
     btnTodos.onclick = () => selecionarCategoria('todos');
     container.appendChild(btnTodos);
-    
+
     // Categorias dinâmicas baseadas no setor selecionado
     const categorias = extrairCategorias();
     categorias.forEach(c => {
@@ -241,7 +241,7 @@ function aplicarFiltros() {
             const setorFiltro = removerAcentos(setorAtual.toLowerCase());
             passouNoSetor = (setorProd === setorFiltro) || (catProd === setorFiltro);
         }
-        
+
         let passouNaCategoria = false;
         if (categoriaAtual === "todos") {
             passouNaCategoria = true;
@@ -251,7 +251,7 @@ function aplicarFiltros() {
             const catFiltro = removerAcentos(categoriaAtual.toLowerCase());
             passouNaCategoria = (catProd === catFiltro) || (setorProd === catFiltro);
         }
-        
+
         return passouNaBusca && passouNoSetor && passouNaCategoria;
     });
 
@@ -266,7 +266,7 @@ function aplicarFiltros() {
     renderizarProdutos(produtosFiltrados);
 }
 
-if(barraBusca) {
+if (barraBusca) {
     barraBusca.addEventListener("input", aplicarFiltros);
 }
 
@@ -278,20 +278,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     const paramSetor = urlParams.get("setor");
     const paramFiltro = urlParams.get("filtro");
-    
+
     if (paramSetor) {
         let setorRaw = removerAcentos(paramSetor.toLowerCase().trim());
-        
+
         // Mapeamentos específicos por erros de plural ou categorias
         if (setorRaw === "doces" || setorRaw === "doce") {
-            setorAtual = "mercearia";
-            categoriaAtual = "doce";
+            setorAtual = "padaria";
+            categoriaAtual = "doces";
         } else if (setorRaw === "frios") {
             setorAtual = "acougue"; // Frios fica no açougue
             categoriaAtual = "frios";
         } else {
-            const subcategoriasMercearia = ["doce", "bebidas", "pets", "limpeza", "laticinios"];
-            
+            const subcategoriasMercearia = ["bebidas", "pets", "limpeza", "laticinios"];
+
             if (subcategoriasMercearia.includes(setorRaw)) {
                 setorAtual = "mercearia";
                 categoriaAtual = setorRaw;

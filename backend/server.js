@@ -233,7 +233,7 @@ app.get('/api/produtos', async (req, res) => {
     try {
         const [results] = await db.query(`
             SELECT p.*, s.nome AS nome_setor,
-                   (SELECT i.imagem_url FROM imagens_produtos i WHERE i.codigo_produto = p.codigo_produto LIMIT 1) AS imagem_url
+                   (SELECT i.imagem_base64 FROM imagens_produtos i WHERE i.codigo_produto = p.codigo_produto LIMIT 1) AS imagem_url
             FROM produtos p
             JOIN setor s ON p.codigo_setor = s.codigo_setor
             ORDER BY p.codigo_produto ASC
@@ -287,7 +287,7 @@ app.post('/api/produtos', upload.array('imagens', 5), async (req, res) => {
         if (req.files && req.files.length > 0) {
             for (let file of req.files) {
                 const dataUri = await comprimirParaBase64(file.buffer);
-                await db.query('INSERT INTO imagens_produtos (codigo_produto, imagem_url) VALUES (?, ?)', [codigoProduto, dataUri]);
+                await db.query('INSERT INTO imagens_produtos (codigo_produto, imagem_base64) VALUES (?, ?)', [codigoProduto, dataUri]);
             }
         }
         res.status(201).json({ mensagem: 'Sucesso!' });
@@ -312,7 +312,7 @@ app.put('/api/produtos/:id', upload.array('imagens', 5), async (req, res) => {
             await db.query('DELETE FROM imagens_produtos WHERE codigo_produto = ?', [req.params.id]);
             for (let file of req.files) {
                 const dataUri = await comprimirParaBase64(file.buffer);
-                await db.query('INSERT INTO imagens_produtos (codigo_produto, imagem_url) VALUES (?, ?)', [req.params.id, dataUri]);
+                await db.query('INSERT INTO imagens_produtos (codigo_produto, imagem_base64) VALUES (?, ?)', [req.params.id, dataUri]);
             }
         } else if (req.body.remove_imagens === 'true') {
              // Caso o usuario tenha deletado a foto na interface
@@ -465,6 +465,13 @@ app.post('/api/pedidos', async (req, res) => {
 
     if (!itens || itens.length === 0) {
         return res.status(400).json({ erro: "Dados do pedido ausentes." });
+    }
+
+    const metodosPermitidos = ['Pix', 'Cartão de Crédito', 'Cartão de Débito'];
+    if (!pagamento || !metodosPermitidos.includes(pagamento)) {
+        return res.status(400).json({
+            erro: "Forma de pagamento inválida. Pagamento em dinheiro foi descontinuado; utilize Pix, Cartão de Crédito ou Cartão de Débito."
+        });
     }
 
     let conexao;

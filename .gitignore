@@ -18,3 +18,4 @@ Thumbs.db
 # Arquivos temporários e scratch
 scratch/
 test-upload.js
+*.bak

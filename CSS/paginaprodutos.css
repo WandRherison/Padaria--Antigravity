@@ -552,3 +552,216 @@ body.dark-mode .codigo-destaque, body.dark-mode .modal-footer {
         padding: 20px;
     }
 }
+
+/* =======================================================
+   SIMULADOR DE GATEWAY DE PAGAMENTO (PIX / CARTÃO)
+======================================================= */
+.gateway-box {
+    max-width: 440px;
+    width: 94%;
+    padding: 24px;
+    border-radius: 20px;
+    background: var(--branco);
+    color: var(--cafe-escuro);
+    max-height: 92vh;
+    overflow-y: auto;
+    text-align: center;
+}
+
+.gateway-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.gateway-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+}
+
+.gateway-badge.pix {
+    background: #E6F7F2;
+    color: #0F7B5F;
+}
+
+.gateway-badge.cartao {
+    background: #F4EFE8;
+    color: var(--cafe-escuro);
+}
+
+.gateway-close {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--cafe-escuro);
+    min-width: 36px;
+    min-height: 36px;
+}
+
+.gateway-box h2 {
+    font-size: 1.45rem;
+    margin-bottom: 4px;
+}
+
+.gateway-subtitulo {
+    font-size: 0.95rem;
+    color: var(--cafe-claro);
+    margin-bottom: 16px;
+}
+
+.pix-qr-wrapper {
+    display: inline-flex;
+    padding: 14px;
+    background: #FFFFFF;
+    border: 2px solid #EFE8DF;
+    border-radius: 16px;
+    margin-bottom: 12px;
+}
+
+.pix-timer {
+    font-size: 0.9rem;
+    color: var(--cafe-claro);
+    margin-bottom: 14px;
+}
+
+.pix-copia-cola {
+    text-align: left;
+    margin-bottom: 14px;
+}
+
+.pix-copia-cola label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.pix-input-row {
+    display: flex;
+    gap: 8px;
+}
+
+.pix-input-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #D9CFC4;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    background: #FAF7F2;
+    color: var(--cafe-escuro);
+}
+
+.pix-input-row button {
+    padding: 0 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--cafe-escuro);
+    color: var(--branco);
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 40px;
+}
+
+.gateway-form {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.gateway-field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.gateway-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gateway-bandeira {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--dourado-suave);
+}
+
+.gateway-field input,
+.gateway-field select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #D9CFC4;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: 'Nunito', sans-serif;
+    background: #FFFDF9;
+    color: var(--cafe-escuro);
+}
+
+.gateway-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.gw-btn-teste {
+    background: #FAF5EB;
+    border: 1px dashed var(--dourado-suave);
+    color: var(--cafe-escuro);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.gw-dica-teste {
+    font-size: 0.78rem;
+    color: var(--cafe-claro);
+    text-align: center;
+}
+
+.gateway-status {
+    min-height: 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 4px 0;
+}
+
+.gateway-status.info { color: var(--cafe-claro); }
+.gateway-status.sucesso { color: #198754; }
+.gateway-status.erro { color: #D9534F; }
+
+.gateway-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+@media (max-width: 480px) {
+    .gateway-box {
+        width: 96%;
+        padding: 18px 14px;
+    }
+
+    .gateway-row-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .pix-input-row {
+        flex-direction: column;
+    }
+
+    .pix-input-row button {
+        width: 100%;
+    }
+}

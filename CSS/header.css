@@ -468,6 +468,11 @@ body {
         scroll-snap-type: x mandatory;
         padding: 10px 15px;
         gap: 12px;
+        scrollbar-width: none;
+    }
+
+    .escolhas::-webkit-scrollbar {
+        display: none;
     }
 
     .escolhas li {

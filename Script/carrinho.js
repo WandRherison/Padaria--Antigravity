@@ -44,7 +44,7 @@ function atualizarBadgesRetirada() {
    RENDER PRINCIPAL DA PÁGINA DE CHECKOUT
 ======================================================= */
 function renderizarPaginaCarrinho() {
-    const containerLista  = document.getElementById('lista-pagina-carrinho');
+    const containerLista = document.getElementById('lista-pagina-carrinho');
     const containerResumo = document.getElementById('resumo-pagina-carrinho');
 
     let itensCarrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
@@ -67,7 +67,7 @@ function renderizarPaginaCarrinho() {
     let totalItens = 0;
 
     itensCarrinho.forEach((item, index) => {
-        const qtd      = item.quantidade || 1;
+        const qtd = item.quantidade || 1;
         const subtotal = item.preco * qtd;
         valorTotal += subtotal;
         totalItens += qtd;
@@ -114,20 +114,17 @@ function renderizarPaginaCarrinho() {
         <!-- Agendamento removido (agora é por item) -->
         <!-- ============================================================ -->
 
-        <!-- FORMAS DE PAGAMENTO -->
+        <!-- FORMAS DE PAGAMENTO (Simulação Online: Pix / Cartão) -->
         <div class="opcoes-pagamento-checkout">
-            <h3 style="font-family:'Nunito'; font-size:1.1rem; color:var(--cafe-escuro); margin-bottom:10px;">Pagar na Retirada com:</h3>
+            <h3 style="font-family:'Nunito'; font-size:1.1rem; color:var(--cafe-escuro); margin-bottom:10px;">Forma de Pagamento:</h3>
             <label class="payment-option-checkout">
-                <input type="radio" name="pagamento-checkout" value="Pix" checked> Pix (QR Code)
+                <input type="radio" name="pagamento-checkout" value="Pix" checked> Pix (QR Code Instantâneo)
             </label>
             <label class="payment-option-checkout">
                 <input type="radio" name="pagamento-checkout" value="Cartão de Crédito"> Cartão de Crédito
             </label>
             <label class="payment-option-checkout">
                 <input type="radio" name="pagamento-checkout" value="Cartão de Débito"> Cartão de Débito
-            </label>
-            <label class="payment-option-checkout">
-                <input type="radio" name="pagamento-checkout" value="Dinheiro"> Dinheiro Espécie
             </label>
         </div>
 
@@ -157,7 +154,7 @@ function removerItemCheckout(index) {
     indiceRemocaoAtual = index;
     limparTudo = false;
     document.getElementById('titulo-modal-remocao').innerText = '⚠️ Remover Item?';
-    document.getElementById('texto-modal-remocao').innerText  = 'Tem certeza que deseja retirar este item do seu pedido?';
+    document.getElementById('texto-modal-remocao').innerText = 'Tem certeza que deseja retirar este item do seu pedido?';
     document.getElementById('modal-remover-item').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
@@ -165,7 +162,7 @@ function removerItemCheckout(index) {
 function limparCarrinhoCompleto() {
     limparTudo = true;
     document.getElementById('titulo-modal-remocao').innerText = '⚠️ Esvaziar Carrinho?';
-    document.getElementById('texto-modal-remocao').innerText  = 'Tem certeza que deseja apagar TODOS os itens do seu pedido?';
+    document.getElementById('texto-modal-remocao').innerText = 'Tem certeza que deseja apagar TODOS os itens do seu pedido?';
     document.getElementById('modal-remover-item').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
@@ -214,71 +211,81 @@ function finalizarCompra(valorTotal, totalItens) {
 
     if (!pagamentoEscolhido) { alert("Por favor, selecione a forma de pagamento."); return; }
 
-    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    const enviarPedidoAposPagamento = () => {
+        const dataHoje = new Date().toLocaleDateString('pt-BR');
+        let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho')) || [];
+        const emailDoCliente = localStorage.getItem('emailUsuario') || 'Cliente Desconhecido';
 
-    let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho')) || [];
-    
-    // Resgata o email real gravado no momento do login
-    const emailDoCliente = localStorage.getItem('emailUsuario') || 'Cliente Desconhecido';
+        const novoPedidoAdmin = {
+            cliente: emailDoCliente,
+            dataPedido: dataHoje,
+            itens: carrinhoAtual,
+            valorTotal: valorTotal,
+            pagamento: pagamentoEscolhido
+        };
 
-    const novoPedidoAdmin = {
-        cliente: emailDoCliente, 
-        dataPedido: dataHoje,
-        itens: carrinhoAtual,
-        valorTotal: valorTotal,
-        pagamento: pagamentoEscolhido
+        const btnFinalizar = document.querySelector('.btn-comprar-tudo');
+        const textoOriginalBtn = btnFinalizar ? btnFinalizar.innerText : 'Finalizar Compra';
+        if (btnFinalizar) {
+            btnFinalizar.disabled = true;
+            btnFinalizar.innerText = '⏳ Processando Pedido...';
+            btnFinalizar.style.cursor = 'not-allowed';
+        }
+
+        // Envia o payload direto para a API Node
+        const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
+            ? 'http://localhost:3000'
+            : '';
+        fetch(`${API_BASE}/api/pedidos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(novoPedidoAdmin)
+        })
+            .then(async resposta => {
+                if (!resposta.ok) {
+                    const erroAPI = await resposta.json();
+                    throw new Error(erroAPI.erro || 'Não foi possível salvar o pedido no banco.');
+                }
+                return resposta.json();
+            })
+            .then(dados => {
+                // Mostra o modal de sucesso na tela apenas se salvou com sucesso no MySQL
+                const codigo = dados.pedidosGerados ? dados.pedidosGerados.join(', ') : 'N/A';
+                document.getElementById('display-codigo').innerText = codigo;
+                document.getElementById('modal-qtd').innerText = totalItens + ' un';
+                document.getElementById('modal-total').innerText = formatarDinheiroCheckout(valorTotal);
+                document.getElementById('modal-pagamento').innerText = pagamentoEscolhido;
+
+                document.getElementById('modal-confirmacao').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+
+                // Limpa o carrinho local e salva no histórico local
+                let historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+                historico.push(novoPedidoAdmin);
+                localStorage.setItem('historicoPedidos', JSON.stringify(historico));
+                localStorage.removeItem('carrinho');
+            })
+            .catch(erro => {
+                console.error("Erro detalhado no checkout:", erro);
+                alert("Erro ao processar compra: " + erro.message);
+                if (btnFinalizar) {
+                    btnFinalizar.disabled = false;
+                    btnFinalizar.innerText = textoOriginalBtn;
+                    btnFinalizar.style.cursor = 'pointer';
+                }
+            });
     };
 
-    const btnFinalizar = document.querySelector('.btn-comprar-tudo');
-    const textoOriginalBtn = btnFinalizar ? btnFinalizar.innerText : 'Finalizar Compra';
-    if (btnFinalizar) {
-        btnFinalizar.disabled = true;
-        btnFinalizar.innerText = '⏳ Processando Pedido...';
-        btnFinalizar.style.cursor = 'not-allowed';
+    if (typeof window.abrirGatewayPagamento === 'function') {
+        window.abrirGatewayPagamento({
+            metodo: pagamentoEscolhido,
+            valorTotal: valorTotal,
+            totalItens: totalItens,
+            onAprovado: enviarPedidoAposPagamento
+        });
+    } else {
+        enviarPedidoAposPagamento();
     }
-
-    // Envia o payload direto para a API Node
-    const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
-        ? 'http://localhost:3000'
-        : '';
-    fetch(`${API_BASE}/api/pedidos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novoPedidoAdmin)
-    })
-    .then(async resposta => {
-        if (!resposta.ok) {
-            const erroAPI = await resposta.json();
-            throw new Error(erroAPI.erro || 'Não foi possível salvar o pedido no banco.');
-        }
-        return resposta.json();
-    })
-    .then(dados => {
-        // Mostra o modal de sucesso na tela apenas se salvou com sucesso no MySQL
-        const codigo = dados.pedidosGerados ? dados.pedidosGerados.join(', ') : 'N/A';
-        document.getElementById('display-codigo').innerText  = codigo;
-        document.getElementById('modal-qtd').innerText       = totalItens + ' un';
-        document.getElementById('modal-total').innerText     = formatarDinheiroCheckout(valorTotal);
-        document.getElementById('modal-pagamento').innerText = pagamentoEscolhido;
-
-        document.getElementById('modal-confirmacao').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-
-        // Limpa o carrinho local e salva no histórico local
-        let historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
-        historico.push(novoPedidoAdmin); 
-        localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-        localStorage.removeItem('carrinho');
-    })
-    .catch(erro => {
-        console.error("Erro detalhado no checkout:", erro);
-        alert("Erro ao processar compra: " + erro.message);
-        if (btnFinalizar) {
-            btnFinalizar.disabled = false;
-            btnFinalizar.innerText = textoOriginalBtn;
-            btnFinalizar.style.cursor = 'pointer';
-        }
-    });
 }
 
 function fecharModalCompra() {
