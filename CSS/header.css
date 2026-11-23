@@ -390,56 +390,88 @@ body {
     .header {
         position: relative;
         height: auto;
-        padding: 12px 0 10px 0;
+        padding: 10px 0 8px 0;
     }
 
     .header section {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        padding: 0 15px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 0 14px;
     }
 
     /* Topo do Cabeçalho: Logo e Marca */
     .logo-e-marca {
-        justify-content: center;
-        gap: 10px;
+        justify-content: flex-start;
+        gap: 8px;
     }
 
     .logo img {
-        height: 38px;
+        height: 36px;
     }
 
     .marca a {
-        font-size: 1.8rem;
+        font-size: 1.55rem;
     }
 
-    /* Menu de Ações e Links */
+    /* Menu de Ações e Links com gaveta hambúrguer */
+    .btn-menu-mobile {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        border: 1px solid rgba(212, 175, 55, 0.5);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--branco);
+        font-size: 1.25rem;
+        cursor: pointer;
+        order: 3;
+    }
+
     .menu-principal {
-        width: 100%;
+        width: auto;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
-        gap: 10px;
+        justify-content: flex-end;
+        gap: 8px;
+        position: relative;
     }
 
     .menu-principal a {
-        font-size: 0.9rem;
-        padding: 6px 10px;
+        display: none;
+        width: 100%;
+        font-size: 0.98rem;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        text-align: left;
+    }
+
+    .menu-principal.mobile-aberto {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .menu-principal.mobile-aberto a {
+        display: block;
     }
 
     /* Barra de Busca em linha própria de destaque */
     .busca-container {
         width: 100%;
         max-width: 100%;
-        margin: 5px 0 0 0;
+        margin: 4px 0 0 0;
         order: 10; /* Sempre no final do bloco do menu */
     }
 
     #input-busca {
         height: 44px;
-        font-size: 0.95rem;
+        font-size: 16px;
     }
 
     .busca-dropdown {
@@ -493,15 +525,17 @@ body {
 
 @media (max-width: 480px) {
     .menu-principal {
-        gap: 8px;
-    }
-
-    .menu-principal a {
-        font-size: 0.82rem;
-        padding: 5px 8px;
+        gap: 6px;
     }
 
     .marca a {
-        font-size: 1.6rem;
+        font-size: 1.35rem;
+    }
+}
+
+/* Botão hambúrguer oculto no desktop */
+@media (min-width: 769px) {
+    .btn-menu-mobile {
+        display: none !important;
     }
 }

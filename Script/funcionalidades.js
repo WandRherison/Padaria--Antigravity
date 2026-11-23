@@ -388,3 +388,44 @@ document.addEventListener('click', (event) => {
         dropdown.style.display = 'none';
     }
 });
+
+// =======================================================
+// MENU HAMBÚRGUER RESPONSIVO PARA MOBILE (<= 768px)
+// =======================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const headerSection = document.querySelector('.header section');
+    const menuPrincipal = document.querySelector('.menu-principal');
+    if (!headerSection || !menuPrincipal || document.getElementById('btn-menu-mobile')) return;
+
+    const btnMobile = document.createElement('button');
+    btnMobile.id = 'btn-menu-mobile';
+    btnMobile.type = 'button';
+    btnMobile.className = 'btn-menu-mobile';
+    btnMobile.setAttribute('aria-label', 'Abrir menu de navegação');
+    btnMobile.setAttribute('aria-expanded', 'false');
+    btnMobile.textContent = '☰';
+
+    menuPrincipal.insertBefore(btnMobile, menuPrincipal.firstChild);
+
+    const alternarMenuMobile = (forcarFechar = false) => {
+        const abrir = forcarFechar ? false : !menuPrincipal.classList.contains('mobile-aberto');
+        menuPrincipal.classList.toggle('mobile-aberto', abrir);
+        btnMobile.setAttribute('aria-expanded', String(abrir));
+        btnMobile.textContent = abrir ? '✖' : '☰';
+    };
+
+    btnMobile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        alternarMenuMobile();
+    });
+
+    menuPrincipal.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => alternarMenuMobile(true));
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!menuPrincipal.contains(e.target) && menuPrincipal.classList.contains('mobile-aberto')) {
+            alternarMenuMobile(true);
+        }
+    });
+});

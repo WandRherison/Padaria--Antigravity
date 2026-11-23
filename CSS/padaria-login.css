@@ -471,4 +471,24 @@ body {
     .form-login h2 {
         font-size: 2.1rem;
     }
+
+    .form-login input {
+        font-size: 16px;
+        min-height: 46px;
+    }
+}
+
+@media (max-width: 480px) {
+    #logo-login {
+        height: 200px;
+        padding: 20px;
+    }
+
+    #logo-login .diniz {
+        font-size: 3.4rem;
+    }
+
+    .conteiner-login {
+        padding: 24px 18px;
+    }
 }

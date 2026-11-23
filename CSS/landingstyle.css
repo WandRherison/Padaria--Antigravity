@@ -225,8 +225,13 @@
 ======================================================= */
 @media (max-width: 768px) {
     /* Ajuste do Banner Hero */
+    .iniciar {
+        min-height: 260px;
+        padding: 2rem 1rem;
+    }
+
     .iniciar h3 {
-        font-size: 2.2rem; /* Reduzido de 3rem para não ocupar a tela toda */
+        font-size: 2rem; /* Reduzido de 3rem para não ocupar a tela toda */
         letter-spacing: 1px;
     }
     
