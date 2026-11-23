@@ -765,3 +765,400 @@ body.dark-mode .codigo-destaque, body.dark-mode .modal-footer {
         width: 100%;
     }
 }
+
+/* =======================================================
+   UX REFATORADA DO CHECKOUT (STEPPER, GRUPOS, PAY CARDS, STICKY MOBILE, DARK MODE)
+======================================================= */
+.checkout-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 520px;
+    margin: 0 auto 1.5rem;
+    gap: 8px;
+}
+
+.stepper-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #9A8C82;
+}
+
+.stepper-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 900;
+    background: #EFE7DC;
+    color: var(--cafe-claro);
+}
+
+.stepper-item.ativo {
+    color: var(--cafe-escuro);
+}
+
+.stepper-item.ativo .stepper-dot {
+    background: var(--dourado-suave);
+    color: #2B1F19;
+}
+
+.stepper-line {
+    flex: 1;
+    height: 2px;
+    background: #E5D9C8;
+}
+
+.checkout-lista-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.checkout-lista-topo h2 {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--cafe-escuro);
+}
+
+.badge-codigos-retirada {
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(212, 175, 55, 0.18);
+    color: #9A7418;
+}
+
+.grupo-retirada-box {
+    background: var(--branco);
+    border: 1px solid #E8DDD0;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 20px rgba(74, 59, 50, 0.04);
+}
+
+.grupo-retirada-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 11px 16px;
+    background: #FAF3E8;
+    border-bottom: 1px solid #E8DDD0;
+    font-size: 0.85rem;
+    color: var(--cafe-escuro);
+}
+
+.tag-retire-gratis {
+    color: #198754;
+    font-weight: 800;
+    font-size: 0.78rem;
+}
+
+.grupo-retirada-itens .card-produto-checkout {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #F0E7DC;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+}
+
+.grupo-retirada-itens .card-produto-checkout:last-child {
+    border-bottom: none;
+}
+
+.thumb-produto-checkout {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    background: #FFFFFF;
+    border: 1px solid #EFE7DC;
+    border-radius: 12px;
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.checkout-item-controles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.checkout-qtd-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid #E2D5C3;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--branco);
+}
+
+.checkout-qtd-stepper button {
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: transparent;
+    color: var(--cafe-escuro);
+    font-size: 1.1rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.checkout-qtd-stepper button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.checkout-qtd-stepper span {
+    min-width: 32px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.checkout-item-direita {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Cards de Pagamento */
+.titulo-pagamento-checkout {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--cafe-escuro);
+    margin: 12px 0 8px;
+}
+
+.texto-gratis {
+    color: #198754;
+}
+
+.pay-card-checkout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    border: 1.5px solid #E5D9C8;
+    background: var(--branco);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.pay-card-checkout:hover {
+    border-color: var(--dourado-suave);
+}
+
+.pay-card-checkout.ativo {
+    border-color: var(--dourado-suave);
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.pay-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pay-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+}
+
+.pay-card-body strong {
+    font-size: 0.92rem;
+    color: var(--cafe-escuro);
+}
+
+.pay-card-body small {
+    font-size: 0.78rem;
+    color: var(--cafe-claro);
+}
+
+.pay-tag-instantaneo {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(25, 135, 84, 0.14);
+    color: #198754;
+}
+
+.checkout-links-secundarios {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 0.85rem;
+}
+
+.link-voltar-checkout {
+    color: var(--cafe-claro);
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.btn-esvaziar-checkout {
+    background: transparent;
+    border: none;
+    color: #D9534F;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.checkout-selo-seguro {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--cafe-claro);
+}
+
+/* Barra Sticky Mobile */
+.checkout-mobile-sticky {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .main-checkout {
+        padding-bottom: 5.5rem;
+    }
+
+    .grupo-retirada-itens .card-produto-checkout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .thumb-produto-checkout {
+        width: 60px;
+        height: 60px;
+    }
+
+    .checkout-mobile-sticky {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 95;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        background: var(--branco);
+        border-top: 1px solid #E5D9C8;
+        box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .checkout-sticky-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .checkout-sticky-label {
+        font-size: 0.75rem;
+        color: var(--cafe-claro);
+        font-weight: 700;
+    }
+
+    .checkout-sticky-valor {
+        font-size: 1.15rem;
+        font-weight: 900;
+        color: var(--cafe-escuro);
+    }
+
+    .checkout-sticky-btn {
+        padding: 12px 20px;
+        min-height: 46px;
+        border: none;
+        border-radius: 999px;
+        background: var(--dourado-suave);
+        color: #2B1F19;
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900;
+        font-size: 0.92rem;
+        cursor: pointer;
+    }
+}
+
+/* Dark Mode no Checkout e Gateway */
+body.dark-mode .grupo-retirada-box,
+body.dark-mode .coluna-resumo,
+body.dark-mode .gateway-box,
+body.dark-mode .checkout-mobile-sticky {
+    background: #221B18;
+    border-color: #3A2E28;
+    color: #F7EFE7;
+}
+
+body.dark-mode .grupo-retirada-header {
+    background: #2C231F;
+    border-color: #3A2E28;
+    color: #F7EFE7;
+}
+
+body.dark-mode .grupo-retirada-itens .card-produto-checkout {
+    background: transparent;
+    border-color: #332823;
+}
+
+body.dark-mode .pay-card-checkout,
+body.dark-mode .checkout-qtd-stepper,
+body.dark-mode .gateway-field input,
+body.dark-mode .gateway-field select,
+body.dark-mode .pix-input-row input {
+    background: #1A1412;
+    border-color: #42352E;
+    color: #F7EFE7;
+}
+
+body.dark-mode .pay-card-checkout.ativo {
+    background: rgba(212, 175, 55, 0.16);
+    border-color: var(--dourado-suave);
+}
+
+body.dark-mode .checkout-lista-topo h2,
+body.dark-mode .titulo-pagamento-checkout,
+body.dark-mode .pay-card-body strong,
+body.dark-mode .checkout-qtd-stepper button,
+body.dark-mode .checkout-sticky-valor,
+body.dark-mode .stepper-item.ativo,
+body.dark-mode .gateway-close {
+    color: #F7EFE7;
+}
+
+body.dark-mode .pay-card-body small,
+body.dark-mode .link-voltar-checkout,
+body.dark-mode .checkout-selo-seguro,
+body.dark-mode .checkout-sticky-label,
+body.dark-mode .gateway-subtitulo {
+    color: #C2B5AA;
+}

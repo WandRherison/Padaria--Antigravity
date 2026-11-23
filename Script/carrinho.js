@@ -3,41 +3,71 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const formatarDinheiroCheckout = (valor) => {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
-/* =======================================================
-   HORÁRIOS PRÉ-ESTABELECIDOS (07:30 → 20:00, a cada 30min)
-======================================================= */
-function gerarHorarios() {
-    const slots = [];
-    let h = 7, m = 30;
-    while (h < 20 || (h === 20 && m === 0)) {
-        const hh = String(h).padStart(2, '0');
-        const mm = String(m).padStart(2, '0');
-        slots.push(`${hh}:${mm}`);
-        m += 30;
-        if (m >= 60) { m -= 60; h++; }
+let metodoPagamentoSelecionado = 'Pix';
+
+function atualizarStepper(etapa) {
+    [1, 2, 3].forEach(n => {
+        const el = document.getElementById(`step-${n}`);
+        if (el) el.classList.toggle('ativo', n <= etapa);
+    });
+}
+
+function formatarDataRetiradaLabel(dataStr) {
+    if (!dataStr) return 'Data não definida';
+    if (dataStr.includes('-')) {
+        return dataStr.split('-').reverse().join('/');
     }
-    return slots;
+    return dataStr;
 }
 
-const HORARIOS_DISPONIVEIS = gerarHorarios();
+function alterarQuantidadeCheckout(index, delta) {
+    const itensCarrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const item = itensCarrinho[index];
+    if (!item) return;
 
-/* =======================================================
-   DATA MÍNIMA = AMANHÃ
-======================================================= */
-function getDataMinima() {
-    const amanha = new Date();
-    amanha.setDate(amanha.getDate() + 1);
-    return amanha.toISOString().split('T')[0];
+    const novaQtd = (item.quantidade || 1) + delta;
+    const maxEstoque = item.quantidade_estoque_real || 99;
+
+    if (novaQtd < 1) return;
+    if (novaQtd > maxEstoque) {
+        if (typeof mostrarToast === 'function') {
+            mostrarToast(`Temos apenas ${maxEstoque} unidades disponíveis de ${item.nome}.`);
+        }
+        return;
+    }
+
+    item.quantidade = novaQtd;
+    localStorage.setItem('carrinho', JSON.stringify(itensCarrinho));
+    renderizarPaginaCarrinho();
+    if (typeof atualizarContadorCarrinho === 'function') atualizarContadorCarrinho();
 }
 
-/* =======================================================
-   ATUALIZA O BADGE NOS CARDS AO VIVO (sem re-renderizar)
-======================================================= */
-function atualizarBadgesRetirada() {
-    // Removida a atualização global de badges (agora a data vem de cada item)
+function selecionarMetodoPagamento(metodo) {
+    metodoPagamentoSelecionado = metodo;
+    document.querySelectorAll('.pay-card-checkout').forEach(card => {
+        const ativo = card.dataset.metodo === metodo;
+        card.classList.toggle('ativo', ativo);
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = ativo;
+    });
+    atualizarBotaoPagamento();
+}
+
+function atualizarBotaoPagamento() {
+    const itensCarrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const valorTotal = itensCarrinho.reduce((acc, i) => acc + (i.preco * (i.quantidade || 1)), 0);
+    const btnDesk = document.querySelector('.btn-comprar-tudo');
+    const mobLabel = document.getElementById('mob-checkout-metodo');
+    const mobTotal = document.getElementById('mob-checkout-total');
+
+    if (btnDesk) {
+        btnDesk.textContent = `Pagar ${formatarDinheiroCheckout(valorTotal)} com ${metodoPagamentoSelecionado}`;
+    }
+    if (mobLabel) mobLabel.textContent = `Total via ${metodoPagamentoSelecionado}`;
+    if (mobTotal) mobTotal.textContent = formatarDinheiroCheckout(valorTotal);
 }
 
 /* =======================================================
@@ -46,10 +76,13 @@ function atualizarBadgesRetirada() {
 function renderizarPaginaCarrinho() {
     const containerLista = document.getElementById('lista-pagina-carrinho');
     const containerResumo = document.getElementById('resumo-pagina-carrinho');
+    const stickyMobile = document.getElementById('mobile-sticky-checkout');
 
-    let itensCarrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const itensCarrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    atualizarStepper(1);
 
     if (itensCarrinho.length === 0) {
+        if (stickyMobile) stickyMobile.style.display = 'none';
         document.getElementById('container-checkout').innerHTML = `
             <div class="carrinho-vazio">
                 <img src="./Imagens Secundarias/Pão.svg" alt="Carrinho Vazio">
@@ -61,8 +94,8 @@ function renderizarPaginaCarrinho() {
         return;
     }
 
-    /* ---- Coluna esquerda: cards dos itens ---- */
-    containerLista.innerHTML = '';
+    // Agrupa os itens por data e hora de retirada (preservando o índice original no carrinho)
+    const grupos = {};
     let valorTotal = 0;
     let totalItens = 0;
 
@@ -72,76 +105,136 @@ function renderizarPaginaCarrinho() {
         valorTotal += subtotal;
         totalItens += qtd;
 
-        containerLista.innerHTML += `
-            <div class="card-produto-checkout">
-                <div class="info-produto">
-                    <h3>${item.nome}</h3>
-                    <span class="detalhes-valores">
-                        Valor unitário: ${formatarDinheiroCheckout(item.preco)} (x${qtd})
-                    </span>
-                    <span class="badge-retirada-item" style="
-                        display: block;
-                        margin-top: 8px;
-                        font-size: 0.88rem;
-                        font-weight: 700;
-                        font-family: 'Nunito', sans-serif;
-                        color: #4A7C59;
-                    ">📅 Retirada: ${item.dataRetirada.split('-').reverse().join('/')} às ${item.horaRetirada}</span>
-                </div>
-                <div class="acoes-produto">
-                    <span class="subtotal-item">${formatarDinheiroCheckout(subtotal)}</span>
-                    <button class="btn-remover-checkout" onclick="removerItemCheckout(${index})">Remover ✕</button>
-                </div>
-            </div>
-        `;
+        const dataFmt = formatarDataRetiradaLabel(item.dataRetirada);
+        const horaFmt = item.horaRetirada || '--:--';
+        const chave = `${dataFmt} às ${horaFmt}`;
+        if (!grupos[chave]) grupos[chave] = [];
+        grupos[chave].push({ item, index, qtd, subtotal });
     });
 
-    /* ---- Opções de horário removidas do resumo ---- */
+    const totalGrupos = Object.keys(grupos).length;
 
-    /* ---- Coluna direita: agendamento + pagamento + totais ---- */
+    /* ---- Coluna esquerda: grupos de retirada + cards com foto e stepper ---- */
+    containerLista.innerHTML = `
+        <div class="checkout-lista-topo">
+            <h2>Itens do Pedido</h2>
+            <span class="badge-codigos-retirada">
+                ${totalGrupos === 1 ? '1 horário • 1 código de retirada' : `${totalGrupos} horários • ${totalGrupos} códigos de retirada`}
+            </span>
+        </div>
+    `;
+
+    Object.entries(grupos).forEach(([chaveRetirada, listaGrupo]) => {
+        const grupoEl = document.createElement('div');
+        grupoEl.className = 'grupo-retirada-box';
+
+        const itensHTML = listaGrupo.map(({ item, index, qtd, subtotal }) => {
+            const imgSrc = item.imagem || './Imagens/Logo.png';
+            const maxEstoque = item.quantidade_estoque_real || 99;
+            return `
+                <div class="card-produto-checkout">
+                    <img class="thumb-produto-checkout" src="${imgSrc}" alt="${item.nome}">
+                    <div class="info-produto">
+                        <h3>${item.nome}</h3>
+                        <span class="detalhes-valores">
+                            ${formatarDinheiroCheckout(item.preco)} / un
+                        </span>
+                        <div class="checkout-item-controles">
+                            <div class="checkout-qtd-stepper">
+                                <button type="button" onclick="alterarQuantidadeCheckout(${index}, -1)" ${qtd <= 1 ? 'disabled' : ''} aria-label="Diminuir quantidade">−</button>
+                                <span>${qtd}</span>
+                                <button type="button" onclick="alterarQuantidadeCheckout(${index}, 1)" ${qtd >= maxEstoque ? 'disabled' : ''} aria-label="Aumentar quantidade">+</button>
+                            </div>
+                            <div class="checkout-item-direita">
+                                <span class="subtotal-item">${formatarDinheiroCheckout(subtotal)}</span>
+                                <button type="button" class="btn-remover-checkout" onclick="removerItemCheckout(${index})">Remover</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        grupoEl.innerHTML = `
+            <div class="grupo-retirada-header">
+                <span>📅 Retirada: <strong>${chaveRetirada}</strong></span>
+                <span class="tag-retire-gratis">Peça e Retire</span>
+            </div>
+            <div class="grupo-retirada-itens">${itensHTML}</div>
+        `;
+        containerLista.appendChild(grupoEl);
+    });
+
+    /* ---- Coluna direita: resumo + cards clicáveis de pagamento ---- */
     containerResumo.innerHTML = `
-        <h2>Resumo do Pedido</h2>
+        <h2>Resumo & Pagamento</h2>
 
         <div class="linha-resumo">
-            <span>Total de itens:</span>
-            <span>${totalItens} un</span>
+            <span>Total de itens</span>
+            <strong>${totalItens} un</strong>
         </div>
         <div class="linha-resumo">
-            <span>Subtotal:</span>
-            <span>${formatarDinheiroCheckout(valorTotal)}</span>
+            <span>Retirada no balcão</span>
+            <strong class="texto-gratis">Grátis</strong>
         </div>
 
-        <!-- Agendamento removido (agora é por item) -->
-        <!-- ============================================================ -->
-
-        <!-- FORMAS DE PAGAMENTO (Simulação Online: Pix / Cartão) -->
         <div class="opcoes-pagamento-checkout">
-            <h3 style="font-family:'Nunito'; font-size:1.1rem; color:var(--cafe-escuro); margin-bottom:10px;">Forma de Pagamento:</h3>
-            <label class="payment-option-checkout">
-                <input type="radio" name="pagamento-checkout" value="Pix" checked> Pix (QR Code Instantâneo)
+            <h3 class="titulo-pagamento-checkout">Escolha como pagar:</h3>
+
+            <label class="pay-card-checkout ${metodoPagamentoSelecionado === 'Pix' ? 'ativo' : ''}" data-metodo="Pix" onclick="selecionarMetodoPagamento('Pix')">
+                <input type="radio" name="pagamento-checkout" value="Pix" ${metodoPagamentoSelecionado === 'Pix' ? 'checked' : ''}>
+                <div class="pay-card-body">
+                    <div class="pay-card-top">
+                        <strong>⚡ Pix</strong>
+                        <span class="pay-tag-instantaneo">Instantâneo</span>
+                    </div>
+                    <small>QR Code ou Copia e Cola</small>
+                </div>
             </label>
-            <label class="payment-option-checkout">
-                <input type="radio" name="pagamento-checkout" value="Cartão de Crédito"> Cartão de Crédito
+
+            <label class="pay-card-checkout ${metodoPagamentoSelecionado === 'Cartão de Crédito' ? 'ativo' : ''}" data-metodo="Cartão de Crédito" onclick="selecionarMetodoPagamento('Cartão de Crédito')">
+                <input type="radio" name="pagamento-checkout" value="Cartão de Crédito" ${metodoPagamentoSelecionado === 'Cartão de Crédito' ? 'checked' : ''}>
+                <div class="pay-card-body">
+                    <strong>💳 Cartão de Crédito</strong>
+                    <small>Em até 3x sem juros</small>
+                </div>
             </label>
-            <label class="payment-option-checkout">
-                <input type="radio" name="pagamento-checkout" value="Cartão de Débito"> Cartão de Débito
+
+            <label class="pay-card-checkout ${metodoPagamentoSelecionado === 'Cartão de Débito' ? 'ativo' : ''}" data-metodo="Cartão de Débito" onclick="selecionarMetodoPagamento('Cartão de Débito')">
+                <input type="radio" name="pagamento-checkout" value="Cartão de Débito" ${metodoPagamentoSelecionado === 'Cartão de Débito' ? 'checked' : ''}>
+                <div class="pay-card-body">
+                    <strong>💳 Cartão de Débito</strong>
+                    <small>Pagamento à vista</small>
+                </div>
             </label>
         </div>
 
         <div class="total-resumo">
-            <span>Total:</span>
+            <span>Total</span>
             <span>${formatarDinheiroCheckout(valorTotal)}</span>
         </div>
 
-        <button class="btn-comprar-tudo" onclick="finalizarCompra(${valorTotal}, ${totalItens})">Finalizar Compra</button>
+        <button type="button" class="btn-comprar-tudo" onclick="finalizarCompra(${valorTotal}, ${totalItens})">
+            Pagar ${formatarDinheiroCheckout(valorTotal)} com ${metodoPagamentoSelecionado}
+        </button>
 
-        <button class="btn-voltar-compras" onclick="window.location.href='padaria-landinpage.html'">Voltar às Compras</button>
+        <div class="checkout-links-secundarios">
+            <a href="pagina-catalogo.html?filtro=retiravel" class="link-voltar-checkout">← Continuar comprando</a>
+            <button type="button" class="btn-esvaziar-checkout" onclick="limparCarrinhoCompleto()">Esvaziar carrinho</button>
+        </div>
 
-        <button class="btn-remover-checkout" style="width:100%; margin-top:15px; text-align:center;" onclick="limparCarrinhoCompleto()">Esvaziar Carrinho</button>
+        <p class="checkout-selo-seguro">🔒 Pagamento simulado seguro • Seus códigos ficam salvos em Meus Pedidos</p>
     `;
 
-    // Atualiza badges caso a página seja re-renderizada com dados já existentes
-    atualizarBadgesRetirada();
+    // Atualiza barra fixa mobile
+    if (stickyMobile) {
+        stickyMobile.style.display = '';
+        const btnMob = document.getElementById('btn-finalizar-mobile');
+        if (btnMob) {
+            btnMob.onclick = () => finalizarCompra(valorTotal, totalItens);
+        }
+    }
+    atualizarBotaoPagamento();
 }
 
 /* =======================================================
@@ -175,7 +268,7 @@ function fecharModalRemocao() {
 }
 
 function confirmarRemocao() {
-    let itensCarrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+    const itensCarrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
 
     if (limparTudo) {
         localStorage.removeItem('carrinho');
@@ -192,10 +285,8 @@ function confirmarRemocao() {
 }
 
 /* =======================================================
-   FINALIZAR COMPRA — aplica data/hora única em todos os itens
+   FINALIZAR COMPRA (GATEWAY SIMULADO -> POST /api/pedidos)
 ======================================================= */
-// O NOVO FLUXO DE RECIBO AO FINALIZAR
-// O NOVO FLUXO DE RECIBO AO FINALIZAR
 function finalizarCompra(valorTotal, totalItens) {
     const estaLogado = localStorage.getItem('usuarioLogado');
 
@@ -205,15 +296,19 @@ function finalizarCompra(valorTotal, totalItens) {
         return;
     }
 
-    // Captura o input de rádio que estiver marcado
     const formaPagamento = document.querySelector('input[name="pagamento-checkout"]:checked');
-    const pagamentoEscolhido = formaPagamento ? formaPagamento.value : null;
+    const pagamentoEscolhido = formaPagamento ? formaPagamento.value : metodoPagamentoSelecionado;
 
-    if (!pagamentoEscolhido) { alert("Por favor, selecione a forma de pagamento."); return; }
+    if (!pagamentoEscolhido) {
+        alert("Por favor, selecione a forma de pagamento.");
+        return;
+    }
+
+    atualizarStepper(2);
 
     const enviarPedidoAposPagamento = () => {
         const dataHoje = new Date().toLocaleDateString('pt-BR');
-        let carrinhoAtual = JSON.parse(localStorage.getItem('carrinho')) || [];
+        const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho')) || [];
         const emailDoCliente = localStorage.getItem('emailUsuario') || 'Cliente Desconhecido';
 
         const novoPedidoAdmin = {
@@ -232,48 +327,47 @@ function finalizarCompra(valorTotal, totalItens) {
             btnFinalizar.style.cursor = 'not-allowed';
         }
 
-        // Envia o payload direto para a API Node
         const API_BASE = (window.location.protocol === 'file:' || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' && window.location.port !== ''))
             ? 'http://localhost:3000'
             : '';
+
         fetch(`${API_BASE}/api/pedidos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(novoPedidoAdmin)
         })
-            .then(async resposta => {
-                if (!resposta.ok) {
-                    const erroAPI = await resposta.json();
-                    throw new Error(erroAPI.erro || 'Não foi possível salvar o pedido no banco.');
-                }
-                return resposta.json();
-            })
-            .then(dados => {
-                // Mostra o modal de sucesso na tela apenas se salvou com sucesso no MySQL
-                const codigo = dados.pedidosGerados ? dados.pedidosGerados.join(', ') : 'N/A';
-                document.getElementById('display-codigo').innerText = codigo;
-                document.getElementById('modal-qtd').innerText = totalItens + ' un';
-                document.getElementById('modal-total').innerText = formatarDinheiroCheckout(valorTotal);
-                document.getElementById('modal-pagamento').innerText = pagamentoEscolhido;
+        .then(async resposta => {
+            if (!resposta.ok) {
+                const erroAPI = await resposta.json();
+                throw new Error(erroAPI.erro || 'Não foi possível salvar o pedido no banco.');
+            }
+            return resposta.json();
+        })
+        .then(dados => {
+            atualizarStepper(3);
+            const codigo = dados.pedidosGerados ? dados.pedidosGerados.join(', ') : 'N/A';
+            document.getElementById('display-codigo').innerText = codigo;
+            document.getElementById('modal-qtd').innerText = totalItens + ' un';
+            document.getElementById('modal-total').innerText = formatarDinheiroCheckout(valorTotal);
+            document.getElementById('modal-pagamento').innerText = pagamentoEscolhido;
 
-                document.getElementById('modal-confirmacao').style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+            document.getElementById('modal-confirmacao').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
 
-                // Limpa o carrinho local e salva no histórico local
-                let historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
-                historico.push(novoPedidoAdmin);
-                localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-                localStorage.removeItem('carrinho');
-            })
-            .catch(erro => {
-                console.error("Erro detalhado no checkout:", erro);
-                alert("Erro ao processar compra: " + erro.message);
-                if (btnFinalizar) {
-                    btnFinalizar.disabled = false;
-                    btnFinalizar.innerText = textoOriginalBtn;
-                    btnFinalizar.style.cursor = 'pointer';
-                }
-            });
+            const historico = JSON.parse(localStorage.getItem('historicoPedidos')) || [];
+            historico.push(novoPedidoAdmin);
+            localStorage.setItem('historicoPedidos', JSON.stringify(historico));
+            localStorage.removeItem('carrinho');
+        })
+        .catch(erro => {
+            console.error("Erro detalhado no checkout:", erro);
+            alert("Erro ao processar compra: " + erro.message);
+            if (btnFinalizar) {
+                btnFinalizar.disabled = false;
+                btnFinalizar.innerText = textoOriginalBtn;
+                btnFinalizar.style.cursor = 'pointer';
+            }
+        });
     };
 
     if (typeof window.abrirGatewayPagamento === 'function') {

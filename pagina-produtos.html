@@ -41,44 +41,24 @@
         </section>
     </header>
 
-    <div class="menu-categorias">
-        <ul class="escolhas">
-            <li><a href="pagina-catalogo.html?setor=frios"><img id="Frios" src="./Imagens Secundarias/Frios.svg"
-                        alt="Ícone Frios">
-                    <p>Frios</p>
-                </a></li>
-            <li><a href="pagina-catalogo.html?setor=hortifruti"><img id="Hortifruti"
-                        src="./Imagens Secundarias/Hortifruti.svg" alt="Ícone Hortifruti">
-                    <p>Hortifruti</p>
-                </a></li>
-            <li><a href="pagina-catalogo.html?setor=padaria"><img id="Padaria" src="./Imagens Secundarias/Pão.svg"
-                        alt="Ícone Pães">
-                    <p>Pães</p>
-                </a></li>
-            <li><a href="pagina-catalogo.html?setor=laticinios"><img id="Laticinios"
-                        src="./Imagens Secundarias/Milk.svg" alt="Ícone Laticínios">
-                    <p>Laticínios</p>
-                </a></li>
-            <li><a href="pagina-catalogo.html?setor=pets"><img id="Pets" src="./Imagens Secundarias/Pets.svg"
-                        alt="Ícone Pets">
-                    <p>Pets</p>
-                </a></li>
-            <li><a href="pagina-catalogo.html?setor=doces"><img id="Doces" src="./Imagens Secundarias/Doces.svg"
-                        alt="Ícone Doces">
-                    <p>Doces</p>
-                </a></li>
-            <li><a href="pagina-catalogo.html?setor=bebidas"><img id="Bebidas" src="./Imagens Secundarias/soda..svg"
-                        alt="Ícone Bebidas">
-                    <p>Bebidas</p>
-                </a></li>
-            <li><a href="pagina-catalogo.html?setor=limpeza"><img id="Limpeza" src="./Imagens Secundarias/Limpeza.svg"
-                        alt="Ícone Limpeza">
-                    <p>Limpeza/Higiene</p>
-                </a></li>
-        </ul>
-    </div>
-
     <main class="main-checkout">
+        <div class="checkout-stepper" aria-label="Etapas do pedido">
+            <div class="stepper-item ativo" id="step-1">
+                <span class="stepper-dot">1</span>
+                <span>Revisão</span>
+            </div>
+            <div class="stepper-line"></div>
+            <div class="stepper-item" id="step-2">
+                <span class="stepper-dot">2</span>
+                <span>Pagamento</span>
+            </div>
+            <div class="stepper-line"></div>
+            <div class="stepper-item" id="step-3">
+                <span class="stepper-dot">3</span>
+                <span>Código</span>
+            </div>
+        </div>
+
         <h1 class="titulo-checkout">Finalizar Pedido</h1>
 
         <div class="container-checkout" id="container-checkout">
@@ -87,6 +67,17 @@
             <div class="coluna-resumo" id="resumo-pagina-carrinho"></div>
         </div>
     </main>
+
+    <!-- Barra Fixa Inferior no Mobile -->
+    <div id="mobile-sticky-checkout" class="checkout-mobile-sticky" style="display: none;">
+        <div class="checkout-sticky-info">
+            <span id="mob-checkout-metodo" class="checkout-sticky-label">Total via Pix</span>
+            <strong id="mob-checkout-total" class="checkout-sticky-valor">R$ 0,00</strong>
+        </div>
+        <button type="button" id="btn-finalizar-mobile" class="checkout-sticky-btn">
+            Finalizar Pedido →
+        </button>
+    </div>
 
     <div id="carrinho-overlay" class="carrinho-overlay" onclick="fecharCarrinho()"></div>
     <aside id="carrinho-lateral" class="carrinho-oculto">
