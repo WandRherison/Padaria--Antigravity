@@ -801,22 +801,105 @@ body.dark-mode .modal-footer {
     margin-top: 6px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .gateway-box {
-        width: 96%;
-        padding: 18px 14px;
+        width: 90%;
+        max-width: 340px;
+        padding: 14px;
+        border-radius: 16px;
+        max-height: 85vh;
     }
 
-    .gateway-row-2 {
-        grid-template-columns: 1fr;
+    .gateway-box h2 {
+        font-size: 1.15rem;
+        margin-bottom: 2px;
+    }
+
+    .gateway-subtitulo {
+        font-size: 0.82rem;
+        margin-bottom: 10px;
+    }
+
+    .pix-qr-wrapper {
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+
+    .pix-qr-wrapper svg {
+        width: 128px;
+        height: 128px;
+    }
+
+    .pix-timer {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .pix-copia-cola {
+        margin-bottom: 8px;
     }
 
     .pix-input-row {
         flex-direction: column;
+        gap: 6px;
+    }
+
+    .pix-input-row input {
+        padding: 7px 10px;
+        font-size: 0.78rem;
     }
 
     .pix-input-row button {
         width: 100%;
+        min-height: 36px;
+        font-size: 0.82rem;
+    }
+
+    .gateway-form {
+        gap: 8px;
+    }
+
+    .gateway-field label {
+        font-size: 0.78rem;
+        margin-bottom: 2px;
+    }
+
+    .gateway-field input,
+    .gateway-field select {
+        padding: 8px 10px;
+        font-size: 0.92rem;
+    }
+
+    .gateway-row-2 {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .gw-btn-teste {
+        padding: 6px 10px;
+        font-size: 0.78rem;
+    }
+
+    .gw-dica-teste {
+        font-size: 0.72rem;
+    }
+
+    .gateway-actions .btn-comprar-tudo,
+    .gateway-actions .btn-voltar-compras {
+        padding: 10px 12px;
+        font-size: 0.88rem;
+        margin: 0;
+    }
+
+    #modal-confirmacao .modal-box,
+    #modal-remover-item .modal-box {
+        width: 90%;
+        max-width: 340px;
+    }
+
+    .codigo-destaque {
+        font-size: 1.5rem;
+        padding: 8px;
     }
 }
 
