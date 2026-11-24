@@ -31,19 +31,18 @@
                 </div>
             </div>
 
+            <div class="busca-container">
+                <label for="input-busca" class="sr-only">Buscar produtos no catálogo</label>
+                <input type="text" id="input-busca" placeholder="Buscar produtos..." onkeyup="pesquisarProdutos()" aria-label="Buscar produtos no catálogo">
+            </div>
+
             <nav class="menu-principal" aria-label="Navegação principal">
-                <div class="busca-container">
-                    <label for="input-busca" class="sr-only">Buscar produtos no catálogo</label>
-                    <input type="text" id="input-busca" placeholder="Buscar produtos..." onkeyup="pesquisarProdutos()" aria-label="Buscar produtos no catálogo">
-                </div>
-                
                 <button id="btn-tema" onclick="alternarTema()" aria-label="Alternar tema claro e escuro">🌙</button>
                 <button id="btn-carrinho" onclick="abrirCarrinho()" aria-label="Abrir carrinho de compras: 0 itens adicionados">🛒(<span id="contador-carrinho">0</span>)</button>
 
                 <a href="meus-pedidos.html">Meus Pedidos</a>
                 <a href="pagina-produtos.html">Carrinho</a>
                 <a href="padaria-login.html">Login</a>
-                
             </nav>
         </section>
     </header>
