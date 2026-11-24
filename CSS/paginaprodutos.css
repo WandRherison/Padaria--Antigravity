@@ -1107,6 +1107,12 @@ body.dark-mode .modal-footer {
         padding-bottom: 5.5rem;
     }
 
+    /* Sobe o botão flutuante do WhatsApp para não sobrepor a barra fixa de finalizar pedido */
+    .zap {
+        bottom: 86px !important;
+        right: 14px !important;
+    }
+
     .grupo-retirada-itens .card-produto-checkout {
         flex-direction: row;
         align-items: flex-start;
