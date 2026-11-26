@@ -26,7 +26,7 @@
                     <span class="icone">🥕</span><span class="texto-circulo">Hortifruti</span>
                 </button>
                 <button class="btn-circulo" onclick="carregarSetorAdmin('mercearia')" id="btn-mercearia">
-                    <span class="icone">🧺</span><span class="texto-circulo">mercearia</span>
+                    <span class="icone">🧺</span><span class="texto-circulo">Mercearia</span>
                 </button>
                 
                 <div class="divisor-lateral"></div>
@@ -57,13 +57,12 @@
                 </div>
 
                 <div class="topbar-acoes-direita">
-    
-                    <div class="filtros-admin-container" style="display: flex; gap: 10px; align-items: center;">
+                    <div class="filtros-admin-container">
                         <div class="busca-admin-container">
                             <input type="text" id="busca-admin" placeholder="Procurar..." onkeyup="filtrarTelaAdmin()">
                         </div>
 
-                        <select id="filtro-status-admin" onchange="filtrarTelaAdmin()" style="padding: 10px; border-radius: 8px; border: 1px solid #A89F98; display: none;">
+                        <select id="filtro-status-admin" onchange="filtrarTelaAdmin()" style="display: none;">
                             <option value="todos">Todos os Status</option>
                             <option value="ativos">⚡ Apenas Ativos (Pendente & Produção)</option>
                             <option value="Pendente">⏳ Pendente</option>
@@ -77,7 +76,7 @@
                         <button class="btn-adicionar-produto" onclick="abrirModalProduto()">+ Adicionar Produto</button>
                     </div>
 
-                    <button id="btn-limpar-sistema" onclick="limparPedidosGlobaisConcluidos()" style="display: none; padding: 10px 15px; background-color: #D9534F; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; align-items: center; gap: 5px; font-size: 0.9rem; transition: 0.2s; height: 40px;">
+                    <button id="btn-limpar-sistema" class="btn-limpar-sistema-admin" onclick="limparPedidosGlobaisConcluidos()" style="display: none;">
                         🗑️ Limpar Concluídos
                     </button>
 
@@ -88,10 +87,36 @@
                 </div>
             </header>
 
+            <!-- Sub-navegação rápida no Mobile (Setores ou Clientes/Vendas) -->
+            <div id="admin-subnav-mobile" class="admin-subnav-mobile" aria-label="Atalhos da seção"></div>
+
+            <!-- Faixa dinâmica de KPIs (Produtos) ou Pills de Status (Pedidos) -->
+            <div id="admin-kpis-bar" class="admin-kpis-bar" style="display: none;"></div>
+
             <section class="grid-admin" id="grid-admin-produtos">
-                </section>
+            </section>
         </main>
     </div>
+
+    <!-- Barra de Navegação Inferior Estilo App (Mobile <= 768px) -->
+    <nav id="admin-mobile-nav" class="admin-mobile-nav" aria-label="Navegação rápida do painel">
+        <button type="button" class="admin-mob-item ativo" data-grupo="produtos" onclick="carregarSetorAdmin('padaria')">
+            <span class="admin-mob-ico">🥖</span>
+            <span>Produtos</span>
+        </button>
+        <button type="button" class="admin-mob-item" data-grupo="pedidos" onclick="carregarSetorAdmin('pedidos')">
+            <span class="admin-mob-ico">📋</span>
+            <span>Pedidos</span>
+        </button>
+        <button type="button" class="admin-mob-item" data-grupo="gestao" onclick="carregarSetorAdmin('clientes')">
+            <span class="admin-mob-ico">👥</span>
+            <span>Gestão</span>
+        </button>
+        <button type="button" class="admin-mob-item" data-grupo="dashboard" onclick="carregarSetorAdmin('dashboard')">
+            <span class="admin-mob-ico">📊</span>
+            <span>BI</span>
+        </button>
+    </nav>
 
     <div id="modal-produto" class="modal-overlay" style="display: none;">
         <div class="modal-box">

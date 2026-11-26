@@ -52,13 +52,130 @@ async function carregarCategoriasAdmin() {
 
 // =======================================================
 // LER (Busca na API)
+let produtosSetorCache = [];
+let filtroKpiProdutoAtual = 'todos';
+
+function atualizarNavegacaoMobileAdmin(setor) {
+    const setoresProdutos = ['padaria', 'acougue', 'hortifruti', 'mercearia'];
+    const grupoAtivo = setoresProdutos.includes(setor)
+        ? 'produtos'
+        : (setor === 'clientes' || setor === 'vendas' ? 'gestao' : setor);
+
+    document.querySelectorAll('#admin-mobile-nav .admin-mob-item').forEach(btn => {
+        btn.classList.toggle('ativo', btn.dataset.grupo === grupoAtivo);
+    });
+
+    const subnav = document.getElementById('admin-subnav-mobile');
+    if (!subnav) return;
+
+    if (grupoAtivo === 'produtos') {
+        const lista = [
+            { id: 'padaria', label: '🥖 Padaria' },
+            { id: 'acougue', label: '🥩 Açougue' },
+            { id: 'hortifruti', label: '🥕 Hortifruti' },
+            { id: 'mercearia', label: '🧺 Mercearia' }
+        ];
+        subnav.style.display = '';
+        subnav.innerHTML = lista.map(s =>
+            `<button type="button" class="subnav-chip${setor === s.id ? ' ativo' : ''}" onclick="carregarSetorAdmin('${s.id}')">${s.label}</button>`
+        ).join('');
+    } else if (grupoAtivo === 'gestao') {
+        subnav.style.display = '';
+        subnav.innerHTML = `
+            <button type="button" class="subnav-chip${setor === 'clientes' ? ' ativo' : ''}" onclick="carregarSetorAdmin('clientes')">👥 Clientes</button>
+            <button type="button" class="subnav-chip${setor === 'vendas' ? ' ativo' : ''}" onclick="carregarSetorAdmin('vendas')">📈 Vendas & Ranking</button>
+        `;
+    } else {
+        subnav.style.display = 'none';
+        subnav.innerHTML = '';
+    }
+}
+
+function renderizarKpisProdutos(produtos) {
+    const kpiBar = document.getElementById('admin-kpis-bar');
+    if (!kpiBar) return;
+
+    const total = produtos.length;
+    const ofertas = produtos.filter(p => p.preco_oferta && parseFloat(p.preco_oferta) > 0).length;
+    const baixo = produtos.filter(p => Number(p.quantidade_estoque) > 0 && Number(p.quantidade_estoque) <= 5).length;
+    const esgotados = produtos.filter(p => Number(p.quantidade_estoque) <= 0).length;
+
+    kpiBar.style.display = 'grid';
+    kpiBar.className = 'admin-kpis-bar';
+    kpiBar.innerHTML = `
+        <button type="button" class="kpi-card-admin${filtroKpiProdutoAtual === 'todos' ? ' ativo' : ''}" onclick="filtrarPorKpiProduto('todos')">
+            <span class="kpi-label">Total no Setor</span>
+            <strong class="kpi-valor">${total}</strong>
+        </button>
+        <button type="button" class="kpi-card-admin${filtroKpiProdutoAtual === 'oferta' ? ' ativo' : ''}" onclick="filtrarPorKpiProduto('oferta')">
+            <span class="kpi-label">🔥 Em Oferta</span>
+            <strong class="kpi-valor">${ofertas}</strong>
+        </button>
+        <button type="button" class="kpi-card-admin${filtroKpiProdutoAtual === 'baixo' ? ' ativo' : ''}" onclick="filtrarPorKpiProduto('baixo')">
+            <span class="kpi-label">⚠️ Estoque Baixo</span>
+            <strong class="kpi-valor">${baixo}</strong>
+        </button>
+        <button type="button" class="kpi-card-admin${filtroKpiProdutoAtual === 'esgotado' ? ' ativo' : ''}" onclick="filtrarPorKpiProduto('esgotado')">
+            <span class="kpi-label">🚫 Esgotados</span>
+            <strong class="kpi-valor">${esgotados}</strong>
+        </button>
+    `;
+}
+
+function filtrarPorKpiProduto(tipo) {
+    filtroKpiProdutoAtual = tipo;
+    renderizarKpisProdutos(produtosSetorCache);
+    let filtrados = produtosSetorCache;
+    if (tipo === 'oferta') filtrados = produtosSetorCache.filter(p => p.preco_oferta && parseFloat(p.preco_oferta) > 0);
+    else if (tipo === 'baixo') filtrados = produtosSetorCache.filter(p => Number(p.quantidade_estoque) > 0 && Number(p.quantidade_estoque) <= 5);
+    else if (tipo === 'esgotado') filtrados = produtosSetorCache.filter(p => Number(p.quantidade_estoque) <= 0);
+    desenharGradeAdmin(filtrados);
+}
+
+function renderizarPillsPedidos() {
+    const kpiBar = document.getElementById('admin-kpis-bar');
+    const selectStatus = document.getElementById('filtro-status-admin');
+    if (!kpiBar) return;
+
+    const atual = selectStatus ? selectStatus.value : 'todos';
+    const contar = (st) => todosPedidosCache.filter(p => p.status === st).length;
+    const ativos = contar('Pendente') + contar('Em produção');
+
+    const opcoes = [
+        { val: 'todos', label: `Todos (${todosPedidosCache.length})` },
+        { val: 'ativos', label: `⚡ Ativos (${ativos})` },
+        { val: 'Pendente', label: `⏳ Pendente (${contar('Pendente')})` },
+        { val: 'Em produção', label: `👨‍🍳 Produção (${contar('Em produção')})` },
+        { val: 'Finalizado', label: `✅ Finalizado (${contar('Finalizado')})` },
+        { val: 'Cancelado', label: `🚫 Cancelado (${contar('Cancelado')})` }
+    ];
+
+    kpiBar.style.display = 'flex';
+    kpiBar.className = 'admin-kpis-bar modo-pills';
+    kpiBar.innerHTML = opcoes.map(o =>
+        `<button type="button" class="pill-pedido-admin${atual === o.val ? ' ativo' : ''}" onclick="selecionarPillPedidoAdmin('${o.val}')">${o.label}</button>`
+    ).join('');
+}
+
+function selecionarPillPedidoAdmin(valor) {
+    const selectStatus = document.getElementById('filtro-status-admin');
+    if (selectStatus) selectStatus.value = valor;
+    renderizarPillsPedidos();
+    filtrarTelaAdmin();
+}
+
 // =======================================================
 async function carregarSetorAdmin(setor) {
     setorAdminAtual = setor;
+    filtroKpiProdutoAtual = 'todos';
     const gridAdmin = document.getElementById('grid-admin-produtos'); 
     const filtroStatus = document.getElementById('filtro-status-admin');
     const buscaInput = document.getElementById('busca-admin');
-    const btnLimparSistema = document.getElementById('btn-limpar-sistema'); // <-- Captura o botão da topbar
+    const btnLimparSistema = document.getElementById('btn-limpar-sistema');
+    const kpiBar = document.getElementById('admin-kpis-bar');
+    if (kpiBar) { kpiBar.style.display = 'none'; kpiBar.innerHTML = ''; }
+
+    atualizarNavegacaoMobileAdmin(setor);
     
     document.getElementById('titulo-setor-admin').innerText = setor.charAt(0).toUpperCase() + setor.slice(1);
     document.querySelectorAll('.btn-circulo').forEach(btn => btn.classList.remove('ativo'));
@@ -116,8 +233,9 @@ async function carregarSetorAdmin(setor) {
         try {
             const resposta = await fetch(`${API_BASE}/api/produtos`);
             const produtosCompletos = await resposta.json();
-            const produtosDoSetor = produtosCompletos.filter(p => p.nome_setor === setor);
-            desenharGradeAdmin(produtosDoSetor);
+            produtosSetorCache = produtosCompletos.filter(p => p.nome_setor === setor);
+            renderizarKpisProdutos(produtosSetorCache);
+            desenharGradeAdmin(produtosSetorCache);
         } catch (erro) {
             gridAdmin.innerHTML = '<p>Erro ao conectar com o banco de dados.</p>';
         }
@@ -128,33 +246,40 @@ function desenharGradeAdmin(produtos) {
     grid.innerHTML = '';
 
     if (produtos.length === 0) {
-        grid.innerHTML = '<p>Nenhum produto neste setor.</p>';
+        grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 30px; color: var(--cafe-claro); font-weight: 700;">Nenhum produto encontrado neste filtro.</p>';
         return;
     }
 
     produtos.forEach(prod => {
-        // Formata os preços que vêm do banco (ex: 15.90 -> 15,90 / Kg)
         const precoFormatado = parseFloat(prod.valor).toFixed(2).replace('.', ',');
         const unidade = prod.unidade_medida ? ` / ${prod.unidade_medida}` : "";
-        let precoDisplay = precoFormatado + unidade;
+        let precoDisplay = `R$ ${precoFormatado}${unidade}`;
 
-        if (prod.preco_oferta) {
+        if (prod.preco_oferta && parseFloat(prod.preco_oferta) > 0) {
             const oferta = parseFloat(prod.preco_oferta).toFixed(2).replace('.', ',');
-            precoDisplay = `🔥 Oferta: R$ ${oferta}${unidade}`;
-        } else {
-            precoDisplay = `R$ ${precoDisplay}`;
+            precoDisplay = `🔥 R$ ${oferta}${unidade} <small class="preco-antigo-admin">R$ ${precoFormatado}</small>`;
         }
 
+        const est = Number(prod.quantidade_estoque || 0);
+        const badgeEstoque = est <= 0
+            ? `<span class="badge-admin-card perigo">🚫 Esgotado</span>`
+            : (est <= 5
+                ? `<span class="badge-admin-card alerta">⚠️ Estoque: ${est}</span>`
+                : `<span class="badge-admin-card ok">📦 ${est} un</span>`);
+
+        const badgeRetiravel = prod.is_retiravel === 1
+            ? `<span class="badge-admin-card dourado">🛒 Retirável</span>`
+            : '';
+
         const imagemCapa = prod.imagem_url || "../../Imagens/Logo.png";
-        
-        // Passa o objeto inteiro formatado como JSON para facilitar a edição
         const jsonProd = encodeURIComponent(JSON.stringify(prod));
 
         grid.innerHTML += `
             <div class="card-admin">
                 <button class="btn-deletar-card" onclick="apagarProduto('${prod.codigo_produto}')" title="Excluir Produto">🗑️</button>
                 <img src="${imagemCapa}" alt="${prod.nome}">
-                <h5>Setor: ${prod.nome_setor}</h5>
+                <div class="card-admin-badges">${badgeEstoque}${badgeRetiravel}</div>
+                <h5>${prod.categoria || prod.nome_setor}</h5>
                 <h3>${prod.nome}</h3>
                 <p class="preco">${precoDisplay}</p>
                 <button class="btn-editar-card" onclick="abrirModalEditar('${jsonProd}')">Editar Produto</button>
@@ -547,9 +672,12 @@ async function mostrarPedidosNoAdmin(forcarRecarregamento = false) {
     }
     
     if (todosPedidosCache.length === 0) {
+        renderizarPillsPedidos();
         grid.innerHTML = '<p class="msg-vazia" style="grid-column: 1 / -1; text-align: center; font-size: 1.2rem; padding: 40px 0;">Nenhum pedido recebido ainda.</p>';
         return;
     }
+
+    renderizarPillsPedidos();
 
     const statusFiltro = document.getElementById('filtro-status-admin') ? document.getElementById('filtro-status-admin').value : 'todos';
     const termo = document.getElementById('busca-admin') ? document.getElementById('busca-admin').value.toLowerCase().trim() : '';
@@ -848,7 +976,7 @@ async function mostrarClientesNoAdmin() {
         grid.innerHTML = '';
         clientes.forEach(cliente => {
             grid.innerHTML += `
-                <div class="card-cliente-admin" style="background: white; border: 1.5px solid #D4C5A9; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                <div class="card-cliente-admin" style="background: white; border: none; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 16px rgba(74,59,50,0.05);">
                     <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;">
                         <div style="font-size: 2.5rem;">👤</div>
                         <div>

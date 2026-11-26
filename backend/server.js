@@ -41,7 +41,11 @@ app.get('/', (req, res) => {
 });
 
 // Rotas diretas e tolerantes a maiúsculas/minúsculas para o Painel Admin
-app.get(['/admin', '/Admin', '/Admin/HTML/index-admin.html', '/Admin/Html/index-admin.html', '/admin/html/index-admin.html'], (req, res) => {
+app.get(['/admin', '/Admin'], (req, res) => {
+    res.redirect('/Admin/Html/index-admin.html');
+});
+
+app.get(['/Admin/HTML/index-admin.html', '/Admin/Html/index-admin.html', '/admin/html/index-admin.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '../Admin/Html/index-admin.html'));
 });
 
