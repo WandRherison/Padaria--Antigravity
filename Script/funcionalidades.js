@@ -428,4 +428,79 @@ document.addEventListener('DOMContentLoaded', () => {
             alternarMenuMobile(true);
         }
     });
+
+    // Destaca o link da página ativa no Header
+    const paginaAtual = window.location.pathname.split('/').pop() || 'padaria-landinpage.html';
+    menuPrincipal.querySelectorAll('a[href]').forEach(a => {
+        const href = a.getAttribute('href').split('?')[0];
+        if (href === paginaAtual) a.classList.add('nav-ativo');
+    });
+
+    // Newsletter funcional sem recarregar a página
+    document.querySelectorAll('.formulario-newsletter form').forEach(form => {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nomeInput = form.querySelector('input[type="text"]');
+            const nome = nomeInput && nomeInput.value.trim() ? nomeInput.value.trim() : 'cliente';
+            if (typeof mostrarToast === 'function') {
+                mostrarToast(`✅ Obrigado, ${nome}! Você receberá nossas ofertas da semana.`);
+            }
+            form.reset();
+        });
+    });
+
+    // Barra de Navegação Rápida Estilo App no Mobile (páginas sem sticky de compra)
+    const paginasSemAppNav = ['pagina-agendamento.html', 'pagina-produtos.html', 'padaria-login.html', 'pagina-cadastro.html', 'padaria-esqueceu-senha.html'];
+    if (!paginasSemAppNav.includes(paginaAtual) && !document.getElementById('mobile-app-nav')) {
+        const estaLogado = localStorage.getItem('usuarioLogado') === 'true';
+        const nav = document.createElement('nav');
+        nav.id = 'mobile-app-nav';
+        nav.className = 'mobile-app-nav';
+        nav.setAttribute('aria-label', 'Navegação rápida');
+
+        const itens = [
+            { href: 'padaria-landinpage.html', icon: '🏠', label: 'Início', match: ['', 'index.html', 'padaria-landinpage.html'] },
+            { href: 'pagina-catalogo.html', icon: '🛍️', label: 'Catálogo', match: ['pagina-catalogo.html'] },
+            { href: '#carrinho', icon: '🛒', label: 'Carrinho', isCart: true, match: [] },
+            { href: 'meus-pedidos.html', icon: '📦', label: 'Pedidos', match: ['meus-pedidos.html'] },
+            { href: estaLogado ? 'meus-pedidos.html' : 'padaria-login.html', icon: '👤', label: estaLogado ? 'Conta' : 'Entrar', match: ['padaria-login.html'] }
+        ];
+
+        nav.innerHTML = itens.map(it => {
+            const ativo = it.match.includes(paginaAtual) ? ' ativo' : '';
+            if (it.isCart) {
+                return `<button type="button" class="app-nav-item" onclick="abrirCarrinho()" aria-label="Abrir carrinho">
+                    <span class="app-nav-icon-wrap">${it.icon}<span id="app-nav-cart-badge" class="app-nav-badge" style="display:none;">0</span></span>
+                    <span>${it.label}</span>
+                </button>`;
+            }
+            return `<a href="${it.href}" class="app-nav-item${ativo}">
+                <span class="app-nav-icon-wrap">${it.icon}</span>
+                <span>${it.label}</span>
+            </a>`;
+        }).join('');
+
+        document.body.appendChild(nav);
+        document.body.classList.add('com-app-nav');
+    }
+
+    // Sincroniza destaque do carrinho no header e na barra estilo app
+    const sincronizarBadgesCarrinho = () => {
+        const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+        const totalQtd = carrinho.reduce((acc, item) => acc + (item.quantidade || 1), 0);
+        const btnHeader = document.getElementById('btn-carrinho');
+        if (btnHeader) btnHeader.classList.toggle('tem-itens', totalQtd > 0);
+        const appBadge = document.getElementById('app-nav-cart-badge');
+        if (appBadge) {
+            appBadge.textContent = totalQtd > 99 ? '99+' : String(totalQtd);
+            appBadge.style.display = totalQtd > 0 ? 'inline-flex' : 'none';
+        }
+    };
+
+    sincronizarBadgesCarrinho();
+    window.addEventListener('storage', sincronizarBadgesCarrinho);
+    const obsContador = document.getElementById('contador-carrinho');
+    if (obsContador) {
+        new MutationObserver(sincronizarBadgesCarrinho).observe(obsContador, { childList: true, characterData: true, subtree: true });
+    }
 });

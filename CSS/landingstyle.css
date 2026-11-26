@@ -27,45 +27,167 @@
    SEÇÃO INICIAL (BANNER HERO)
 ======================================================= */
 .iniciar {
-    /* O linear-gradient escurece a imagem de fundo para o texto brilhar */
-    background: linear-gradient(rgba(30, 20, 15, 0.6), rgba(30, 20, 15, 0.6)), url('../Imagens\ Secundarias/Fachada.jpg');
+    background: linear-gradient(180deg, rgba(24, 16, 12, 0.58) 0%, rgba(24, 16, 12, 0.72) 100%), url('../Imagens Secundarias/Fachada.jpg');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* Dá um efeito sutil de paralaxe ao rolar a página */
-    height: 100vh;
+    background-attachment: fixed;
+    min-height: 68vh;
+    height: auto;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 0 2rem;
+    padding: 4.5rem 2rem;
 }
 
 .iniciar .banner-principal {
-    max-width: 800px;
-    animation: fadeIn 1.5s ease-in-out; /* Animação suave ao carregar */
+    max-width: 820px;
+    animation: fadeIn 1s ease-out;
 }
 
-/* Título Principal do Banner */
+.hero-tag {
+    display: inline-block;
+    background: rgba(212, 175, 55, 0.22);
+    border: 1px solid rgba(212, 175, 55, 0.65);
+    color: #FFF6E0;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 800;
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin-bottom: 1rem;
+    letter-spacing: 0.4px;
+}
+
+/* Título Principal do Banner (h2 e h3 suportados) */
+.iniciar h2,
 .iniciar h3 {
     font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 4.5rem;
-    margin-bottom: 1.5rem;
+    font-weight: 900;
+    font-size: 3.3rem;
+    line-height: 1.12;
+    margin-bottom: 1.1rem;
     color: var(--branco);
     text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    letter-spacing: 1.2px;
+    text-shadow: 2px 3px 12px rgba(0, 0, 0, 0.55);
 }
 
 /* Parágrafo do Banner */
 .iniciar p {
     font-family: 'Nunito', sans-serif;
-    font-size: 1.8rem;
-    font-weight: 800;
+    font-size: 1.25rem;
+    font-weight: 600;
     margin-bottom: 2rem;
-    color: #F8F8F8;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+    color: #F5EFEA;
+    text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.55);
+}
+
+.hero-acoes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.btn-hero-primario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: var(--dourado-suave);
+    color: #2B1F19;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.35);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-hero-primario:hover {
+    transform: translateY(-2px);
+    opacity: 0.94;
+}
+
+.btn-hero-secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 26px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1.5px solid rgba(255, 255, 255, 0.65);
+    color: #FFFFFF;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    backdrop-filter: blur(6px);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-hero-secundario:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+/* =======================================================
+   FAIXA DE BENEFÍCIOS (CONFIANÇA E-COMMERCE)
+======================================================= */
+.faixa-beneficios {
+    max-width: 1180px;
+    width: 90%;
+    margin: -28px auto 1rem;
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.beneficio-item {
+    background: var(--branco);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(74, 59, 50, 0.08);
+    font-family: 'Nunito', sans-serif;
+}
+
+.beneficio-icone {
+    font-size: 1.55rem;
+    flex-shrink: 0;
+}
+
+.beneficio-item strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--cafe-escuro);
+}
+
+.beneficio-item small {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--cafe-claro);
+    margin-top: 2px;
+}
+
+body.dark-mode .beneficio-item {
+    background: #2A1F1A;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+body.dark-mode .beneficio-item strong {
+    color: #F7EFE7;
+}
+
+body.dark-mode .beneficio-item small {
+    color: #C2B5AA;
 }
 
 /* =======================================================
@@ -226,18 +348,64 @@
 @media (max-width: 768px) {
     /* Ajuste do Banner Hero */
     .iniciar {
-        min-height: 260px;
-        padding: 2rem 1rem;
+        min-height: 360px;
+        background-attachment: scroll;
+        padding: 2.5rem 1.25rem 3.5rem;
     }
 
+    .iniciar h2,
     .iniciar h3 {
-        font-size: 2rem; /* Reduzido de 3rem para não ocupar a tela toda */
-        letter-spacing: 1px;
+        font-size: 1.85rem;
+        letter-spacing: 0.5px;
     }
-    
+
     .iniciar p {
-        font-size: 1.1rem;
-        padding: 0 10px;
+        font-size: 1rem;
+        padding: 0 6px;
+        margin-bottom: 1.4rem;
+    }
+
+    .hero-acoes {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-hero-primario,
+    .btn-hero-secundario {
+        width: 100%;
+        max-width: 300px;
+        padding: 13px 20px;
+        font-size: 0.95rem;
+    }
+
+    .faixa-beneficios {
+        width: 94%;
+        margin: -22px auto 1rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .beneficio-item {
+        padding: 12px;
+        gap: 8px;
+        border-radius: 12px;
+    }
+
+    .beneficio-icone {
+        font-size: 1.25rem;
+    }
+
+    .beneficio-item strong {
+        font-size: 0.84rem;
+    }
+
+    .beneficio-item small {
+        font-size: 0.72rem;
+    }
+
+    .menu-central {
+        padding: 2.5rem 1rem;
+        margin: 2rem 0;
     }
 
     /* Frase de Destaque (CTA) */

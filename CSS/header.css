@@ -555,7 +555,117 @@ body {
 
 /* Botão hambúrguer oculto no desktop */
 @media (min-width: 769px) {
-    .btn-menu-mobile {
+    .btn-menu-mobile,
+    .mobile-app-nav {
         display: none !important;
+    }
+}
+
+/* Destaque de página ativa no Header e carrinho com itens */
+.menu-principal a.nav-ativo {
+    color: var(--dourado-suave) !important;
+    font-weight: 900;
+    position: relative;
+}
+
+#btn-carrinho.tem-itens {
+    background-color: var(--dourado-suave) !important;
+    color: #2B1F19 !important;
+    border-color: var(--dourado-suave) !important;
+    font-weight: 900;
+}
+
+/* =======================================================
+   BARRA DE NAVEGAÇÃO RÁPIDA ESTILO APP (MOBILE <= 768px)
+======================================================= */
+@media (max-width: 768px) {
+    body.com-app-nav {
+        padding-bottom: 72px;
+    }
+
+    body.com-app-nav .zap {
+        bottom: 78px !important;
+        right: 14px !important;
+    }
+
+    .mobile-app-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 980;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        background: var(--branco);
+        border-top: 1px solid rgba(74, 59, 50, 0.1);
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    }
+
+    .app-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        background: transparent;
+        border: none;
+        color: var(--cafe-claro);
+        font-family: 'Nunito', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 4px 2px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .app-nav-item.ativo {
+        color: var(--cafe-escuro);
+        font-weight: 900;
+    }
+
+    .app-nav-item.ativo::after {
+        content: '';
+        width: 18px;
+        height: 3px;
+        border-radius: 99px;
+        background: var(--dourado-suave);
+        margin-top: 1px;
+    }
+
+    .app-nav-icon-wrap {
+        position: relative;
+        font-size: 1.2rem;
+        line-height: 1.1;
+    }
+
+    .app-nav-badge {
+        position: absolute;
+        top: -5px;
+        right: -10px;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: #D9534F;
+        color: #FFFFFF;
+        font-size: 0.65rem;
+        font-weight: 900;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.dark-mode .mobile-app-nav {
+        background: #221B18;
+        border-top-color: rgba(255, 255, 255, 0.08);
+    }
+
+    body.dark-mode .app-nav-item {
+        color: #BBAEA3;
+    }
+
+    body.dark-mode .app-nav-item.ativo {
+        color: var(--dourado-suave);
     }
 }
